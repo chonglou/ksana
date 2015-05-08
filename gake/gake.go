@@ -1,10 +1,10 @@
 package main
 
 import (
-	//	"fmt"
-	//"log"
-	//"os"
+//	"fmt"
+//"log"
+//"os"
 )
 
-func main(){
+func main() {
 }

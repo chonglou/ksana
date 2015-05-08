@@ -6,6 +6,7 @@ test:
 
 clean:
 	-rm -r tmp
+	-rm -r utils/config
 
 fmt:
-	gofmt -w *
+	gofmt -w gails gake

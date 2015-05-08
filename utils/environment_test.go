@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestWrite(t *testing.T){
+func TestEnvironment(t *testing.T) {
 	port := 8080
 	envs := make(map[string]Environment)
 	envs["development"] = Environment{
@@ -14,12 +14,11 @@ func TestWrite(t *testing.T){
 	envs["production"] = Environment{
 		Port: port,
 		Database: DatabaseCfg{
-			Port:3306,
+			Port: 3306,
 		},
 	}
 	StoreEnvironment(envs)
-	if e2 := LoadEnvironment("production"); e2.Port!=port{
+	if e2 := LoadEnvironment("production"); e2.Port != port {
 		t.Errorf("port == %i, want %i", e2.Port, port)
 	}
 }
-
