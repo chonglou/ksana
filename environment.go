@@ -7,21 +7,9 @@ import (
 	"os"
 )
 
-type DatabaseCfg struct {
-	Adapter  string `json:"adapter"`
-	Host     string `json:"host"`
-	Port     int    `json:"port"`
-	Name     string `json:"name"`
-	User     string `json:"user"`
-	Password string `json:"password"`
-	Pool     int    `json:"pool"`
-	Timeout  int    `json:"timeout"`
-}
 
 type RedisCfg struct {
-	Host string `json:"host"`
-	Port int    `json:"port"`
-	Db   int    `json:"db"`
+	Url   int    `json:"url"`
 	Pool int    `json:"pool"`
 }
 type SecretCfg struct {

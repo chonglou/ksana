@@ -1,3 +1,7 @@
 package ksana
 
-type Handler interface{}
+import (
+	"http"
+)
+
+type Handler func(writer http.ResponseWriter, request *http.Request, context Context) interface{}

@@ -2,6 +2,7 @@ package ksana
 
 import (
 	"testing"
+	_ "github.com/lib/pq"
 )
 
 func TestDatabase(t *testing.T) {
