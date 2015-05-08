@@ -3,10 +3,10 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/chonglou/ksana/utils"
 	"io/ioutil"
 	"log"
 	"os"
-	//"github.com/chonglou/ksana/utils"
 )
 
 const version = "v20150507"
@@ -65,7 +65,7 @@ func do_new(name string) {
 
 	files := make(map[string]string)
 	files[".gitignore"] = ""
-	files["config/settings.yml"] = ""
+	files["config/settings.json"] = ""
 	files["config/environment.go"] = ""
 	files["config/environments/test.go"] = ""
 	files["config/environments/development.go"] = ""
@@ -85,6 +85,21 @@ func do_new(name string) {
 	}
 
 	log.Printf("Create application %s success!", name)
+}
+
+func settings_json() {
+	envs := make(map[string]ksana.Environment)
+	for _, env := range []string{"production", "development", "test"} {
+		envs[env] = ksana.Environment{
+			Port: 8080,
+			Redis: {
+				Host: 'localhost',
+				Port: 6379,
+				Db: 8,
+			},
+		}
+
+	}
 }
 
 func main() {
