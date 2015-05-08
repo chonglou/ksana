@@ -5,3 +5,6 @@ ksana(A golang web framework)
 
 ## gails
 
+## 3rd lib
+    go get github.com/lib/pq
+    go get github.com/fzzy/radix/redis

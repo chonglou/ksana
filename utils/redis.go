@@ -18,7 +18,7 @@ func (r *Redis) Open(url string, size int) {
 	r.pool = p
 }
 
-func (r *Redis) Run(command string, args ...interface{}) (*redis.Reply, error) {
+func (r *Redis) Exec(command string, args ...interface{}) (*redis.Reply, error) {
 	c, e := r.pool.Get()
 	defer r.pool.Put(c)
 
@@ -26,7 +26,7 @@ func (r *Redis) Run(command string, args ...interface{}) (*redis.Reply, error) {
 		log.Fatalf("Error on get redis connection: %v", e)
 	}
 
-	v := c.Cmd(command, args)
+	v := c.Cmd(command, args...)
 
 	e = v.Err
 	if e != nil {

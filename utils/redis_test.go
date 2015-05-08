@@ -10,10 +10,10 @@ func TestRedis(t *testing.T) {
 
 	redis := Redis{}
 	redis.Open("localhost:6379", 5)
-	//redis.Run('PING')
-	redis.Run("SET", key, val)
+	//redis.Exec('PING')
+	redis.Exec("SET", key, val)
 
-	r, _ := redis.Run("GET", key)
+	r, _ := redis.Exec("GET", key)
 
 	v1, _ := r.Str()
 	if v1 != val {
