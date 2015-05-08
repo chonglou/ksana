@@ -1,7 +1,7 @@
 
 
 test:
-	cd tmp && go test github.com/chonglou/ksana/utils
+	go test github.com/chonglou/ksana/utils
 
 
 clean:
