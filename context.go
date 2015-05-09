@@ -3,59 +3,65 @@ package ksana
 import (
 	"database/sql"
 	"encoding/xml"
-  "io/ioutil"
 	"github.com/fzzy/radix/extra/pool"
 	"github.com/fzzy/radix/redis"
+	"io/ioutil"
 	"log"
-  "os"
 	"log/syslog"
+	"os"
 )
 
 type Context struct {
 	Db     *sql.DB
 	pool   *pool.Pool
-  Logger *syslog.Writer
+	Logger *syslog.Writer
 }
 
 type property struct {
-	name  string `xml:"name,attr"`
-	value string `xml:"value,attr"`
+	Name  string `xml:"name,attr"`
+	Value string `xml:"value,attr"`
 }
 
 type bean struct {
-	id    string     `xml:"id,attr"`
-	inner bool       `xml:"inner,attr"`
-	items []property `xml:"property"`
+	Id         string     `xml:"id,attr"`
+	Inner      bool       `xml:"inner,attr"`
+	Properties []property `xml:"property"`
 }
 
 type configuration struct {
 	XMLName xml.Name `xml:"ksana"`
 
-	name string `xml:"name,attr"`
-	mode string `xml:"mode,attr"`
-	port int    `xml:"port,attr"`
+	Name string `xml:"name,attr"`
+	Mode string `xml:"mode,attr"`
 
-	items []bean `xml:"bean"`
+	Port int    `xml:"port,attr"`
+
+	Beans []bean `xml:"bean"`
 }
 
 func (c *Context) Init() {
-	xf, err := os.Open("context.xml")
+	const fn = "context.xml"
+
+	xf, err := os.Open(fn)
 	if err != nil {
-		log.Fatalf("Error on open context.xml: %v", err)
+		log.Fatalf("Error on open %s: %v", fn, err)
 	}
 	defer xf.Close()
 
-  data, _ := ioutil.ReadAll(xf)
+	data, _ := ioutil.ReadAll(xf)
 
 	cfg := configuration{}
-	xml.Unmarshal(data, &cfg)
+	err = xml.Unmarshal(data, &cfg)
+	if err != nil {
+		log.Fatalf("Error on parse %s: %v", fn, err)
+	}
 
 	log.Printf("=> Booting Ksana %s", VERSION)
-	log.Printf("=> Application starting in %s on http://0.0.0.0:%v\n", cfg.mode, cfg.port)
-	log.Println("=> Run `gails -h server` for more startup options")
+	log.Printf("=> Application starting in %s on http://0.0.0.0:%v\n", cfg.Mode, cfg.Port)
+	log.Println("=> Run `cat context.xml` for more startup options")
 	log.Println("=> Ctrl-C to shutdown server")
 
-	c.openLogger(cfg.name)
+	c.openLogger(cfg.Name)
 
 }
 
@@ -70,6 +76,7 @@ func (c *Context) openLogger(tag string) {
 	if err != nil {
 		log.Fatalf("Error on init logger: %v", err)
 	}
+  logger.Info("Start...")
 	c.Logger = logger
 }
 
@@ -112,7 +119,7 @@ func (c *Context) Redis(f RedisFunc) (interface{}, error) {
 	defer c.pool.Put(cl)
 
 	if e != nil {
-		c.Logger.Err("Error on get redis connection: %v"+e.Error())
+		c.Logger.Err("Error on get redis connection: %v" + e.Error())
 	}
 	return f(cl)
 }

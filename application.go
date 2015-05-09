@@ -53,7 +53,6 @@ func (DeleteNotSupported) Delete(values url.Values) (int, interface{}) {
 }
 
 type Application struct {
-
 }
 
 func (app *Application) Abort(writer http.ResponseWriter, statusCode int) {
