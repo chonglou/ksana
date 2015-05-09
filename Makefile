@@ -1,12 +1,18 @@
 
-
 test:
-	go test github.com/chonglou/ksana/utils
+	go test 
+
+
+install:
+	go install
+
 
 
 clean:
 	-rm -r tmp
-	-rm -r utils/config
 
 fmt:
-	gofmt -w gails gake
+	gofmt -w *.go
+
+
+

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ksana name="ksana-framework" mode="development" port="8080">
+  <bean id="db" inner="true">
+    <property name="adapter" value="postgres"/>
+    <property name="url" value="postgres://postgres@localhost/ksana?sslmode=disable"/>
+  </bean>
+
+  <bean id="redis" inner="true">
+    <property name="pool" value="5"/>
+    <property name="url" value="localhost:6379/2"/>
+  </bean>
+
+</ksana>

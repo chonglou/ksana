@@ -6,8 +6,8 @@ import (
 
 func TestWeb(t *testing.T) {
 
-	app := Application{}
-	app.Start("Ksana", 8080)
+	//app := Application{}
+	//app.Start("Ksana", 8080)
 
 }
 func TestDatabase(t *testing.T) {
