@@ -9,12 +9,18 @@ import (
 	"log"
 	"log/syslog"
 	"os"
+	"strconv"
 )
 
 type Context struct {
+	Port int
+	Name string
+	Mode string
+
 	Db     *sql.DB
-	pool   *pool.Pool
 	Logger *syslog.Writer
+
+	pool *pool.Pool
 }
 
 type property struct {
@@ -23,9 +29,26 @@ type property struct {
 }
 
 type bean struct {
-	Id         string     `xml:"id,attr"`
-	Inner      bool       `xml:"inner,attr"`
+	Name       string     `xml:"name,attr"`
+	Class      string     `xml:"class,attr"`
 	Properties []property `xml:"property"`
+}
+
+func (b *bean) getString(name string) string {
+	for _, b := range b.Properties {
+		if b.Name == name {
+			return b.Value
+		}
+	}
+	return ""
+}
+
+func (b *bean) getInt(name string) int {
+	i, err := strconv.Atoi(b.getString(name))
+	if err != nil {
+		log.Fatal("Bad property %s", name)
+	}
+	return i
 }
 
 type configuration struct {
@@ -34,7 +57,7 @@ type configuration struct {
 	Name string `xml:"name,attr"`
 	Mode string `xml:"mode,attr"`
 
-	Port int    `xml:"port,attr"`
+	Port int `xml:"port,attr"`
 
 	Beans []bean `xml:"bean"`
 }
@@ -61,7 +84,23 @@ func (c *Context) Init() {
 	log.Println("=> Run `cat context.xml` for more startup options")
 	log.Println("=> Ctrl-C to shutdown server")
 
+	c.Port = cfg.Port
+	c.Name = cfg.Name
+	c.Mode = cfg.Mode
+
 	c.openLogger(cfg.Name)
+
+	for _, b := range cfg.Beans {
+		switch b.Name {
+		case "database":
+			c.openDatabase(b.getString("adapter"), b.getString("url"))
+		case "redis":
+			c.openRedis(b.getString("url"), b.getInt("pool"))
+		default:
+			//todo auto create bean
+			c.Logger.Warning("Unknown bean " + b.Name)
+		}
+	}
 
 }
 
@@ -76,7 +115,7 @@ func (c *Context) openLogger(tag string) {
 	if err != nil {
 		log.Fatalf("Error on init logger: %v", err)
 	}
-  logger.Info("Start...")
+	logger.Info("Start...")
 	c.Logger = logger
 }
 
@@ -89,7 +128,9 @@ func (c *Context) openDatabase(adapter string, url string) {
 	if err != nil {
 		log.Fatalf("Error on database ping: %v", err)
 	}
+
 	c.Db = db
+	c.Logger.Info("Connect to database successfull")
 }
 
 func (c *Context) openRedis(url string, size int) {
@@ -110,6 +151,7 @@ func (c *Context) openRedis(url string, size int) {
 	p.Put(cl)
 
 	c.pool = p
+	c.Logger.Info("Connect to redis successfull")
 }
 
 type RedisFunc func(*redis.Client) (interface{}, error)
