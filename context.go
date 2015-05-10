@@ -113,9 +113,9 @@ func (c *Context) openLogger(tag string) {
 	}
 	logger, err := syslog.New(level, tag)
 	if err != nil {
-		log.Fatalf("Error on init logger: %v", err)
+		log.Fatalf("Error on connect syslog: %v", err)
 	}
-	logger.Info("Start...")
+	logger.Info("Start Ksana...")
 	c.Logger = logger
 }
 
