@@ -3,6 +3,7 @@ package ksana
 import (
 	"database/sql"
 	"encoding/xml"
+	"github.com/chonglou/ksana/session"
 	"github.com/fzzy/radix/extra/pool"
 	"github.com/fzzy/radix/redis"
 	"io/ioutil"
@@ -166,7 +167,7 @@ func (c *Context) Redis(f RedisFunc) (interface{}, error) {
 	return f(cl)
 }
 
-var glSessions *sessionManager
+var glSessions *SessionManager
 
 func init() {
 	//todo generate session manager

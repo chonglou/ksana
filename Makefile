@@ -12,7 +12,7 @@ clean:
 	-rm -r tmp
 
 fmt:
-	gofmt -w *.go
+	gofmt -w *.go utils session
 
 
 
