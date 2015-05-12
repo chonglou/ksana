@@ -6,8 +6,6 @@ import (
 	"strings"
 )
 
-type HandlerFunc func(writer http.ResponseWriter, request *http.Request, context *Context)
-
 type Router struct {
 	context  *Context
 	handlers map[string][]*Handler
@@ -51,50 +49,55 @@ func (r *Router) ServeHTTP(wrt http.ResponseWriter, req *http.Request) {
 	http.Error(wrt, "Method Not Allowed", 405)
 }
 
-func (r *Router) Head(p string, h *HandlerFunc) {
+func (r *Router) Head(p string, h HttpHandler) {
 	r.add("HEAD", p, h)
 }
 
-func (r *Router) Get(p string, h *HandlerFunc) {
+func (r *Router) Get(p string, h HttpHandler) {
 	r.add("GET", p, h)
 }
 
-func (r *Router) Post(p string, h *HandlerFunc) {
+func (r *Router) Post(p string, h HttpHandler) {
 	r.add("POST", p, h)
 }
 
-func (r *Router) Put(p string, h *HandlerFunc) {
+func (r *Router) Put(p string, h HttpHandler) {
 	r.add("PUT", p, h)
 }
 
-func (r *Router) Patch(p string, h *HandlerFunc) {
+func (r *Router) Patch(p string, h HttpHandler) {
 	r.add("PATCH", p, h)
 }
 
-func (r *Router) Delete(p string, h *HandlerFunc) {
+func (r *Router) Delete(p string, h HttpHandler) {
 	r.add("DELETE", p, h)
 }
 
-func (r *Router) Options(p string, h *HandlerFunc) {
+func (r *Router) Options(p string, h HttpHandler) {
 	r.add("OPTIONS", p, h)
 }
 
-func (r *Router) add(meth, p string, h *HandlerFunc) {
-	r.handlers[meth] = append(r.handlers[meth], &Handler{p, h})
+func (r *Router) add(meth string, p string, hh HttpHandler) {
+	r.handlers[meth] = append(r.handlers[meth], &Handler{p, hh})
+	// n := len(p)
+	//
+	// rf := func(writer http.ResponseWriter, request *http.Request, context *Context) {
+	// 	http.RedirectHandler(p, http.StatusMovedPermanently)
+	// }
+	// if n > 0 && p[n-1] == '/' {
+	// 	r.add(meth, p[:n-1], &rf)
+	// }
+}
 
-	n := len(p)
+type HandlerFunc func(writer http.ResponseWriter, request *http.Request, context *Context)
 
-	rf := func(writer http.ResponseWriter, request *http.Request, context *Context){
-		http.RedirectHandler(p, http.StatusMovedPermanently)
-	}
-	if n > 0 && p[n-1] == '/' {
-		r.add(meth, p[:n-1], &rf)
-	}
+type HttpHandler interface {
+	ServeHTTP(writer http.ResponseWriter, request *http.Request, context *Context)
 }
 
 type Handler struct {
 	path string
-	ServeHttp *HandlerFunc
+	HttpHandler
 }
 
 func (h *Handler) try(path string) (url.Values, bool) {
