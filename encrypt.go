@@ -3,8 +3,8 @@ package ksana
 import (
 	"crypto/aes"
 	"crypto/cipher"
+	"crypto/hmac"
 	"crypto/md5"
-  "crypto/hmac"
 	"crypto/sha512"
 	"encoding/base64"
 	"log"

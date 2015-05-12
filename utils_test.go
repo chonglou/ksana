@@ -4,21 +4,23 @@ import (
 	"log"
 	"testing"
 )
+
 const hello = "Hello, KSANA!!!"
+
 func TestUuid(t *testing.T) {
-	log.Printf("UUID: %s\t%s", UUID(), UUID())
+	log.Printf("UUID: %s\t%s", Uuid(), Uuid())
 }
 
 func TestRandom(t *testing.T) {
 	log.Printf("Random string: %s\t%s", RandomStr(16), RandomStr(16))
 }
 
-func TestHmac(t *testing.T){
+func TestHmac(t *testing.T) {
 	key := RandomBytes(32)
-	h := Hmac{key:key}
+	h := Hmac{key: key}
 	dest := h.Sum([]byte(hello))
 	log.Printf("HMAC: %x", dest)
-	if !h.Equal(h.Sum([]byte(hello)), dest){
+	if !h.Equal(h.Sum([]byte(hello)), dest) {
 		t.Errorf("HMAC FAILED!")
 	}
 }

@@ -1,7 +1,7 @@
 package ksana
 
 import (
-	"github.com/chonglou/ksana/utils"
+	//. "github.com/chonglou/ksana/utils"
 	//"log"
 	"net/http"
 	"net/url"
@@ -26,7 +26,7 @@ type SessionProvider interface {
 	Init(sid string) (Session, error)
 	Read(sid string) (Session, error)
 	Destroy(sid string) error
-	GC(maxLifeTime int64)
+	Gc(maxLifeTime int64)
 }
 
 type SessionManager struct {
@@ -43,7 +43,7 @@ func (sm *SessionManager) Start(wrt http.ResponseWriter,
 
 	cke, err := req.Cookie(sm.cookieName)
 	if err != nil || cke.Value == "" {
-		sid := UUID()
+		sid := Uuid()
 		sess, _ = sm.provider.Init(sid)
 		cke := http.Cookie{
 			Name:     sm.cookieName,
@@ -80,6 +80,6 @@ func (sm *SessionManager) Destroy(wrt http.ResponseWriter, req *http.Request) {
 func (sm *SessionManager) GC() {
 	sm.lock.Lock()
 	defer sm.lock.Unlock()
-	sm.provider.GC(sm.maxLifeTime)
+	sm.provider.Gc(sm.maxLifeTime)
 	time.AfterFunc(time.Duration(sm.maxLifeTime), func() { sm.GC() })
 }

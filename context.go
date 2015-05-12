@@ -2,8 +2,7 @@ package ksana
 
 import (
 	"database/sql"
-	"encoding/xml"
-	"github.com/chonglou/ksana/session"
+	"encoding/xml"	
 	"github.com/fzzy/radix/extra/pool"
 	"github.com/fzzy/radix/redis"
 	"io/ioutil"
