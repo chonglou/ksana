@@ -2,6 +2,13 @@ Ksana(A golang web framework)
 --------------------------------
 
 ## Install
+
+    bash < <(curl -s -S -L https://raw.githubusercontent.com/moovweb/gvm/master/binscripts/gvm-installer) # If you are using zsh just change bash with zsh
+    # Restart your terminal session
+    gvm listall # List all Go versions available for download
+    gvm install go1.4rc2 # Install go
+    gvm list
+    gvm use go1.4rc2
     go get github.com/chonglou/ksana
 
 ## Getting Started
