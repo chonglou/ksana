@@ -2,108 +2,73 @@ package ksana
 
 import (
 	"database/sql"
-	"encoding/xml"
+	"fmt"
 	"github.com/fzzy/radix/extra/pool"
 	"github.com/fzzy/radix/redis"
-	"io/ioutil"
-	"log"
 	"log/syslog"
 	"os"
-	"strconv"
+  "log"
 )
 
 type Context struct {
+	Redis  *pool.Pool
+	Db     *sql.DB
+	Logger *syslog.Writer
+
 	Port int
 	Name string
 	Mode string
-
-	Logger *syslog.Writer
-	Db     *sql.DB
-	pool   *pool.Pool
 }
 
-type property struct {
-	Name  string `xml:"name,attr"`
-	Value string `xml:"value,attr"`
-}
-
-type bean struct {
-	Name       string     `xml:"name,attr"`
-	Class      string     `xml:"class,attr"`
-	Properties []property `xml:"property"`
-}
-
-func (b *bean) getString(name string) string {
-	for _, b := range b.Properties {
-		if b.Name == name {
-			return b.Value
-		}
-	}
-	return ""
-}
-
-func (b *bean) getInt(name string) int {
-	i, err := strconv.Atoi(b.getString(name))
-	if err != nil {
-		log.Fatal("Bad property %s", name)
-	}
-	return i
-}
-
-type configuration struct {
-	XMLName xml.Name `xml:"ksana"`
-
-	Name string `xml:"name,attr"`
-	Mode string `xml:"mode,attr"`
-
-	Port int `xml:"port,attr"`
-
-	Beans []bean `xml:"bean"`
-}
-
-func (c *Context) Init() {
-	const fn = "context.xml"
-
-	xf, err := os.Open(fn)
-	if err != nil {
-		log.Fatalf("Error on open %s: %v", fn, err)
-	}
-	defer xf.Close()
-
-	data, _ := ioutil.ReadAll(xf)
+func (c *Context) load(fn string) error {
 
 	cfg := configuration{}
-	err = xml.Unmarshal(data, &cfg)
+	err := loadConfiguration(fn, &cfg)
 	if err != nil {
-		log.Fatalf("Error on parse %s: %v", fn, err)
+		return err
 	}
 
-	log.Printf("=> Booting Ksana %s", VERSION)
-	log.Printf("=> Application starting in %s on http://0.0.0.0:%v\n", cfg.Mode, cfg.Port)
-	log.Println("=> Run `cat context.xml` for more startup options")
-	log.Println("=> Ctrl-C to shutdown server")
+	err = c.openLogger(cfg.Name)
+	if err != nil {
+		return err
+	}
+
+	c.Logger.Info("=> Booting Ksana " + VERSION)
+	c.Logger.Info(
+		fmt.Sprintf(
+			"=> Application starting in %s on http://0.0.0.0:%v",
+			cfg.Mode,
+			cfg.Port))
+	c.Logger.Info("=> Run `cat context.xml` for more startup options")
+	c.Logger.Info("=> Ctrl-C to shutdown server")
 
 	c.Port = cfg.Port
 	c.Name = cfg.Name
 	c.Mode = cfg.Mode
 
-	c.openLogger(cfg.Name)
-
 	for _, b := range cfg.Beans {
 		switch b.Name {
 		case "database":
-			c.openDatabase(b.getString("adapter"), b.getString("url"))
+			err = c.openDatabase(
+				b.getString("adapter", "postgres"),
+				b.getString("url", "postgres://postgres@localhost/ksana?sslmode=disable"))
 		case "redis":
-			c.openRedis(b.getString("url"), b.getInt("pool"))
+			err = c.openRedis(
+				b.getString("url", "localhost:6379"),
+				b.getInt("pool", 12),
+				b.getInt("db", 0))
 		default:
-			//todo auto create bean
 			c.Logger.Warning("Unknown bean " + b.Name)
 		}
+		if err != nil {
+			return err
+		}
 	}
+	return nil
 
 }
 
-func (c *Context) openLogger(tag string) {
+func (c *Context) openLogger(tag string) error {
 	var level syslog.Priority
 	if os.Getenv("KSANA_ENVIRONMENT") == "production" {
 		level = syslog.LOG_INFO
@@ -112,62 +77,60 @@ func (c *Context) openLogger(tag string) {
 	}
 	logger, err := syslog.New(level, tag)
 	if err != nil {
-		log.Fatalf("Error on connect syslog: %v", err)
+		return err
 	}
 	logger.Info("Start Ksana...")
 	c.Logger = logger
+	return nil
 }
 
-func (c *Context) openDatabase(adapter string, url string) {
+func (c *Context) openDatabase(adapter string, url string) error {
+  c.Logger.Info("Connect to database")
 	db, err := sql.Open(adapter, url)
 	if err != nil {
-		log.Fatalf("Error on open database connect: %v", err)
+		return err
 	}
+  c.Logger.Info("Ping database")
 	err = db.Ping()
 	if err != nil {
-		log.Fatalf("Error on database ping: %v", err)
+		return err
 	}
-
 	c.Db = db
-	c.Logger.Info("Connect to database successfull")
+  c.Logger.Info("Database setup successfull")
+	return nil
 }
 
-func (c *Context) openRedis(url string, size int) {
+func (c *Context) openRedis(url string, size int, db int) error {
+  c.Logger.Info("Connect to redis")
 	p, e := pool.NewPool("tcp", url, size)
 	if e != nil {
-		log.Fatalf("Error on open redis connection pool: %v", e)
+		return e
 	}
 
 	var cl *redis.Client
 	cl, e = p.Get()
 	if e != nil {
-		log.Fatalf("Error on open redis connection pool: %v", e)
+		return e
 	}
+  c.Logger.Info("Ping redis")
 	e = cl.Cmd("PING").Err
 	if e != nil {
-		log.Fatalf("Error on open redis ping: %v", e)
+		return e
 	}
 	p.Put(cl)
 
-	c.pool = p
-	c.Logger.Info("Connect to redis successfull")
+	c.Redis = p
+	c.Logger.Info("Redis setup successfull")
+	return nil
 }
 
-type RedisFunc func(*redis.Client) (interface{}, error)
-
-func (c *Context) Redis(f RedisFunc) (interface{}, error) {
-	cl, e := c.pool.Get()
-	defer c.pool.Put(cl)
-
-	if e != nil {
-		c.Logger.Err("Error on get redis connection: %v" + e.Error())
-	}
-	return f(cl)
-}
-
-var glSessions *SessionManager
+//-----------------------------------------------------------------------------
+var Ctx *Context
 
 func init() {
-	//todo generate session manager
-	//glSessions, _ = newSessionManager("redis", "gsessionid", 3600)
+	Ctx := &Context{}
+	err := Ctx.load("context.xml")
+	if err != nil {
+		log.Fatalf("Error on load configuration from context.xml: %v", err)
+	}
 }
