@@ -7,7 +7,7 @@ import (
 const sid = "test_session_sid"
 
 func TestFileSession(t *testing.T) {
-	fsp := FileSessionProvider{path: "/tmp/ksana"}
+	fsp := FileSessionProvider{path: "/tmp/ksana/tmp/sessions"}
 	sess, err := fsp.Read(sid)
 	if err != nil {
 		t.Errorf("Session init error: %v", err)

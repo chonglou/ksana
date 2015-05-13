@@ -2,6 +2,7 @@ package ksana
 
 import (
 	"encoding/gob"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"time"
@@ -50,7 +51,7 @@ type FileSessionProvider struct {
 }
 
 func (fsp *FileSessionProvider) filename(sid string) string {
-	return fsp.path + "/tmp/sessions/" + sid
+	return fmt.Sprintf("%s/%x", fsp.path, Md5([]byte(sid)))
 }
 
 func (fsp *FileSessionProvider) Init(sid string) (Session, error) {
@@ -91,7 +92,7 @@ func (fsp *FileSessionProvider) Read(sid string) (Session, error) {
 }
 
 func (fsp *FileSessionProvider) Gc(maxLifeTime int64) {
-	files, err := ioutil.ReadDir(fsp.filename("/"))
+	files, err := ioutil.ReadDir(fsp.path)
 	if err != nil {
 		return
 	}

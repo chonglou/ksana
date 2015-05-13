@@ -26,7 +26,7 @@ func TestHmac(t *testing.T) {
 }
 
 func TestMd5AndSha(t *testing.T) {
-	log.Printf("MD5: %x", MD5([]byte(hello)))
+	log.Printf("MD5: %x", Md5([]byte(hello)))
 }
 
 func TestBase64(t *testing.T) {
