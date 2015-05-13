@@ -22,7 +22,7 @@ func (app *Application) Start() {
 
 	cf := flag.String("config", "context.xml", "configuration filename")
 	server := flag.Bool("server", false, "runing server")
-	generate := flag.String("generate", "", "config | migration | model | controller | test")
+	generate := flag.String("generate", "", "migration | test") //config | migration | model | controller
 	name := flag.String("name", "", "name for generate")
 
 	//act := flag.String("run", "server", "generate | migrate | config | server | database | redis | worker")
