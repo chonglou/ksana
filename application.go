@@ -16,6 +16,7 @@ const VERSION = "v20150510"
 
 type Application struct {
 	ctx        *Context
+	mux        *RegexMux
 	migrations map[string][]string
 }
 
@@ -50,6 +51,8 @@ func (app *Application) config(file string) error {
 	}
 	app.ctx = ctx
 	app.migrations = make(map[string][]string, 0)
+	app.mux = &RegexMux{}
+
 	return nil
 }
 
@@ -71,5 +74,5 @@ func (app *Application) server(file string) error {
 	log.Printf("=> Run `cat %s` for more startup options", file)
 	log.Println("=> Ctrl-C to shutdown server")
 
-	return http.ListenAndServe(fmt.Sprintf(":%d", app.ctx.Port), nil)
+	return http.ListenAndServe(fmt.Sprintf(":%d", app.ctx.Port), app.mux)
 }
