@@ -11,24 +11,15 @@ Ksana(A golang web framework)
     gvm use go1.4.2 --default # Using go1.4.2
     go get github.com/chonglou/ksana
 
-## Getting Started
-After installing Go and setting up your GOPATH, create your first .go file. We'll call it app.go.
+## Examples
 
-    package main
-    import "github.com/chonglou/ksana"
-    func main() {
-      app = ksana.Application{}
-      app.Get("/", func()string{
-        return "Hello, Ksona!"
-      })
-      app.Run(8080)
-    }
+ * [app.go](examples/app.go)
+ * [context.xml](examples/context.xml)
+
+    go run app.go -h
+    go run app.go -migrate # need create your database first
+    go run app.go -server
 
 
-And then run your server:
 
-    go run app.go
 
-## Some 3rd lib
-    go get github.com/lib/pq
-    go get github.com/fzzy/radix/redis
