@@ -5,15 +5,17 @@ import (
 	"fmt"
 	"github.com/fzzy/radix/extra/pool"
 	"github.com/fzzy/radix/redis"
+	"log"
 	"log/syslog"
 	"os"
-  "log"
 )
 
 type Context struct {
 	Redis  *pool.Pool
 	Db     *sql.DB
 	Logger *syslog.Writer
+	Sm     *SessionManager
+	Cm     *CacheManager
 
 	Port int
 	Name string
@@ -57,6 +59,25 @@ func (c *Context) load(fn string) error {
 				b.getString("url", "localhost:6379"),
 				b.getInt("pool", 12),
 				b.getInt("db", 0))
+		case "session":
+			pr := b.getString("provider", "file")
+			pt := b.getString("path", "tmp/sessions")
+			switch pr {
+			case "file":
+				c.Sm = &SessionManager{provider: &FileSessionProvider{path: pt}}
+			default:
+				c.Logger.Warning("Unknown session provider " + pr)
+			}
+		case "cache":
+			pr := b.getString("provider", "file")
+			pt := b.getString("path", "tmp/cache")
+			switch pr {
+			case "file":
+				c.Cm = &CacheManager{provider: &FileCacheProvider{path: pt}}
+			default:
+				c.Logger.Warning("Unknown cache provider " + pr)
+			}
+
 		default:
 			c.Logger.Warning("Unknown bean " + b.Name)
 		}
@@ -85,23 +106,23 @@ func (c *Context) openLogger(tag string) error {
 }
 
 func (c *Context) openDatabase(adapter string, url string) error {
-  c.Logger.Info("Connect to database")
+	c.Logger.Info("Connect to database")
 	db, err := sql.Open(adapter, url)
 	if err != nil {
 		return err
 	}
-  c.Logger.Info("Ping database")
+	c.Logger.Info("Ping database")
 	err = db.Ping()
 	if err != nil {
 		return err
 	}
 	c.Db = db
-  c.Logger.Info("Database setup successfull")
+	c.Logger.Info("Database setup successfull")
 	return nil
 }
 
 func (c *Context) openRedis(url string, size int, db int) error {
-  c.Logger.Info("Connect to redis")
+	c.Logger.Info("Connect to redis")
 	p, e := pool.NewPool("tcp", url, size)
 	if e != nil {
 		return e
@@ -112,7 +133,7 @@ func (c *Context) openRedis(url string, size int, db int) error {
 	if e != nil {
 		return e
 	}
-  c.Logger.Info("Ping redis")
+	c.Logger.Info("Ping redis")
 	e = cl.Cmd("PING").Err
 	if e != nil {
 		return e

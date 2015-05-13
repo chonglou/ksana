@@ -11,10 +11,7 @@ var cache_value = map[string]interface{}{"aaa": "111", "bbb": 222, "ccc": 1.2} /
 
 func TestFileCache(t *testing.T) {
 
-	fcm := FileCacheManager{path: "/tmp/ksana/tmp/cache"}
-
-	var cm CacheManager
-	cm = &fcm
+	cm := CacheManager{provider: &FileCacheProvider{path: "/tmp/ksana/tmp/cache"}}
 
 	err := cm.Set(cache_key, cache_value, 3600*24)
 	if err != nil {

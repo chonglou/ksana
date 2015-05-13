@@ -6,16 +6,24 @@
     <property name="url" value="postgres://postgres@localhost/ksana?sslmode=disable"/>
   </bean>
 
+  <bean name="redis">
+    <property name="pool" value="12"/>
+    <property name="url" value="localhost:6379"/>
+    <property name="db" value="2"/>
+  </bean>
+
+  <bean name="cache">
+    <property name="provider" value="file"/>
+    <property name="path" value="tmp/cache"/>
+  </bean>
+
   <bean name="session">
-    <property name="provider" value="redis"/>
+    <property name="provider" value="file"/>
+    <property name="path" value="tmp/sessions"/>
+
     <property name="cookieName" value="_ksana_session"/>
     <property name="maxLifeTime" value="3600"/>
   </bean>
 
-  <bean name="redis">
-    <property name="pool" value="12"/>
-    <property name="url" value="localhost:6379"/>
-    <property name="database" value="2"/>
-  </bean>
 
 </ksana>
