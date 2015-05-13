@@ -17,10 +17,9 @@ type Context struct {
 	Name string
 	Mode string
 
-	Db     *sql.DB
 	Logger *syslog.Writer
-
-	pool *pool.Pool
+	Db     *sql.DB
+	pool   *pool.Pool
 }
 
 type property struct {

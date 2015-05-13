@@ -1,14 +1,17 @@
 package ksana
 
 import (
-	"log"
 	"net/http"
 	"net/url"
 	"sync"
 	"time"
 )
 
-
+type SessionStore struct {
+	sid          string
+	value        map[interface{}]interface{}
+	timeAccessed time.Time
+}
 
 type Session interface {
 	Set(key, value interface{}) error
@@ -21,7 +24,6 @@ type SessionProvider interface {
 	Init(sid string) (Session, error)
 	Read(sid string) (Session, error)
 	Destroy(sid string) error
-	Update(sid string) error
 	Gc(maxLifeTime int64)
 }
 
@@ -73,36 +75,9 @@ func (sm *SessionManager) Destroy(wrt http.ResponseWriter, req *http.Request) {
 	})
 }
 
-func (sm *SessionManager) GC() {
+func (sm *SessionManager) Gc() {
 	sm.lock.Lock()
 	defer sm.lock.Unlock()
 	sm.provider.Gc(sm.maxLifeTime)
-	time.AfterFunc(time.Duration(sm.maxLifeTime), func() { sm.GC() })
-}
-
-var glSessionProviders = make(map[string]SessionProvider)
-
-func SessionRegister(name string, provider SessionProvider) {
-	if glSessionProviders == nil {
-		log.Fatalf("Session provider is nil")
-	}
-	if _, dup := glSessionProviders[name]; dup {
-		log.Fatalf("Register called twice for provide %s", name)
-	}
-	glSessionProviders[name] = provider
-}
-
-func NewSessionManager(providerName, cookieName string,
-	maxLifeTime int64) (*SessionManager, error) {
-
-	provider, ok := glSessionProviders[providerName]
-
-	if !ok {
-		log.Fatalf("Unknown session provide %s", providerName)
-	}
-
-	return &SessionManager{
-		provider:    provider,
-		cookieName:  cookieName,
-		maxLifeTime: maxLifeTime}, nil
+	time.AfterFunc(time.Duration(sm.maxLifeTime), func() { sm.Gc() })
 }

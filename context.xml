@@ -1,13 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ksana name="ksana-framework" mode="development" port="8080">
+
   <bean name="database">
     <property name="adapter" value="postgres"/>
     <property name="url" value="postgres://postgres@localhost/ksana?sslmode=disable"/>
   </bean>
 
+  <bean name="session">
+    <property name="provider" value="redis"/>
+    <property name="cookieName" value="_ksana_session"/>
+    <property name="maxLifeTime" value="3600"/>
+  </bean>
+
   <bean name="redis">
-    <property name="pool" value="5"/>
+    <property name="pool" value="12"/>
     <property name="url" value="localhost:6379"/>
+    <property name="database" value="2"/>
   </bean>
 
 </ksana>
