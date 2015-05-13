@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"time"
+	//"time"
 )
 
 type FileCacheProvider struct {
@@ -23,12 +23,15 @@ func (fcm *FileCacheProvider) Set(key string, value interface{}, expireTime int6
 		return err
 	}
 	defer f.Close()
+	f.Chmod(0600)
 
 	en := gob.NewEncoder(f)
 	en.Encode(value)
 
-	ex := time.Unix(time.Now().Unix()+expireTime, 0)
-	os.Chtimes(fn, ex, ex)
+	// ex := time.Unix(time.Now().Unix()+expireTime, 0)
+	// os.Chtimes(fn, ex, ex)
+
+	//time.AfterFunc(time.Duration(expireTime), func() { os.Remove(fn) })
 	return nil
 }
 
@@ -50,8 +53,6 @@ func (fcm *FileCacheProvider) Gc() {
 		return
 	}
 	for _, f := range files {
-		if f.ModTime().Unix() < time.Now().Unix() {
-			os.Remove(f.Name())
-		}
+		os.Remove(f.Name())
 	}
 }

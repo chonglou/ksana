@@ -65,6 +65,8 @@ func (c *Context) load(fn string) error {
 			switch pr {
 			case "file":
 				c.Sm = &SessionManager{provider: &FileSessionProvider{path: pt}}
+				c.Logger.Info("Set session to file path: " + pt)
+				err = os.MkdirAll(pt, 0700)
 			default:
 				c.Logger.Warning("Unknown session provider " + pr)
 			}
@@ -74,6 +76,8 @@ func (c *Context) load(fn string) error {
 			switch pr {
 			case "file":
 				c.Cm = &CacheManager{provider: &FileCacheProvider{path: pt}}
+				c.Logger.Info("Set cache to file path: " + pt)
+				err = os.MkdirAll(pt, 0700)
 			default:
 				c.Logger.Warning("Unknown cache provider " + pr)
 			}

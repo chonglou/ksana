@@ -19,6 +19,7 @@ func (sfs *FileSessionStore) save() error {
 		return err
 	}
 	defer f.Close()
+	f.Chmod(0600)
 
 	en := gob.NewEncoder(f)
 	en.Encode(sfs.value)
