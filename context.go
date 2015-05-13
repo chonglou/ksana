@@ -2,10 +2,8 @@ package ksana
 
 import (
 	"database/sql"
-	"fmt"
 	"github.com/fzzy/radix/extra/pool"
 	"github.com/fzzy/radix/redis"
-	"log"
 	"log/syslog"
 	"os"
 )
@@ -35,14 +33,7 @@ func (c *Context) load(fn string) error {
 		return err
 	}
 
-	c.Logger.Info("=> Booting Ksana " + VERSION)
-	c.Logger.Info(
-		fmt.Sprintf(
-			"=> Application starting in %s on http://0.0.0.0:%v",
-			cfg.Mode,
-			cfg.Port))
-	c.Logger.Info("=> Run `cat context.xml` for more startup options")
-	c.Logger.Info("=> Ctrl-C to shutdown server")
+	c.Logger.Info("============ Ksana starting(" + VERSION + ") ============")
 
 	c.Port = cfg.Port
 	c.Name = cfg.Name
@@ -147,15 +138,4 @@ func (c *Context) openRedis(url string, size int, db int) error {
 	c.Redis = p
 	c.Logger.Info("Redis setup successfull")
 	return nil
-}
-
-//-----------------------------------------------------------------------------
-var Ctx *Context
-
-func init() {
-	Ctx := &Context{}
-	err := Ctx.load("context.xml")
-	if err != nil {
-		log.Fatalf("Error on load configuration from context.xml: %v", err)
-	}
 }
