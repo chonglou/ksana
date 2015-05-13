@@ -42,18 +42,18 @@ func RenderText(wrt http.ResponseWriter, data []byte) {
 }
 
 func RenderTpl(wrt http.ResponseWriter, tpl string, data interface{}) {
-	t, err := template.ParseFiles(path.Join("app/views", tpl))
-	if err != nil {
+	t, e := template.ParseFiles(path.Join("app/views", tpl))
+	if e != nil {
 		http.Error(wrt, e.Error(), http.StatusInternalServerError)
 		return
 	}
-	if err = t.Execute(wrt, data); err != nil {
+	if e = t.Execute(wrt, data); e != nil {
 		http.Error(wrt, e.Error(), http.StatusInternalServerError)
 	}
 
 }
 
-func Tpl2Text(buf bytes.Buffer, tpl string, data interface{}) error {
+func Tpl2Text(buf *bytes.Buffer, tpl string, data interface{}) error {
 	t, err := template.ParseFiles(path.Join("app/views", tpl))
 	if err != nil {
 		return err

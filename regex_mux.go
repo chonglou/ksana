@@ -3,11 +3,11 @@ package ksana
 import (
 	//"fmt"
 	"net/http"
-	"regexp"
+	//"regexp"
 )
 
 type RegexMux struct {
-	handlers map[string][]*Handler
+	//handlers map[string][]*Handler
 }
 
 func (p *RegexMux) ServeHTTP(wrt http.ResponseWriter, req *http.Request) {
