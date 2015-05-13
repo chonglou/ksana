@@ -15,10 +15,9 @@ import (
 const VERSION = "v20150510"
 
 type Application struct {
-	ctx *Context
+	ctx        *Context
 	migrations map[string][]string
 }
-
 
 func (app *Application) Start() {
 

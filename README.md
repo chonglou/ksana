@@ -13,13 +13,13 @@ Ksana(A golang web framework)
 
 ## Examples
 
- * [app.go](examples/app.go)
+### Files
+
+ * [app.go](examples/app.go) 
  * [context.xml](examples/context.xml)
+
+### Usage
 
     go run app.go -h
     go run app.go -migrate # need create your database first
     go run app.go -server
-
-
-
-
