@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"regexp"
 	// "os/signal"
 	//"time"
 )
@@ -15,8 +16,7 @@ import (
 const VERSION = "v20150510"
 
 type Application struct {
-	ctx        *Context
-	mux        *RegexMux
+	mux        *RegexpMux
 	migrations map[string][]string
 }
 
@@ -36,7 +36,9 @@ func (app *Application) Start() {
 	case *migrate:
 		err = app.migrate(*cf)
 	default:
-		err = errors.New(fmt.Sprintf("Unknown action, please use `%s -h` for more options.", os.Args[0]))
+		err = errors.New(
+			fmt.Sprintf("Unknown action, please use `%s -h` for more options.",
+				os.Args[0]))
 	}
 	if err != nil {
 		log.Fatalf(err.Error())
@@ -49,9 +51,10 @@ func (app *Application) config(file string) error {
 	if err != nil {
 		return err
 	}
-	app.ctx = ctx
 	app.migrations = make(map[string][]string, 0)
-	app.mux = &RegexMux{}
+	app.mux = &RegexpMux{
+		handlers: make(map[*regexp.Regexp]HandlerFunc, 0),
+		ctx:      ctx}
 
 	return nil
 }
@@ -69,10 +72,10 @@ func (app *Application) server(file string) error {
 	log.Printf("=> Booting Ksana(%s)", VERSION)
 	log.Printf(
 		"=> Application starting in %s on http://0.0.0.0:%v",
-		app.ctx.Mode,
-		app.ctx.Port)
+		app.mux.ctx.Mode,
+		app.mux.ctx.Port)
 	log.Printf("=> Run `cat %s` for more startup options", file)
 	log.Println("=> Ctrl-C to shutdown server")
 
-	return http.ListenAndServe(fmt.Sprintf(":%d", app.ctx.Port), app.mux)
+	return http.ListenAndServe(fmt.Sprintf(":%d", app.mux.ctx.Port), app.mux)
 }
