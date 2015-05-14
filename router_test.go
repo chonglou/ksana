@@ -19,7 +19,7 @@ func TestRouter(t *testing.T) {
 	log.Printf("ROUTE: %s %v", rt.Method(), rtr)
 }
 
-func Taaa(hf HandlerFunc) string {
+func Taaa(hf Handler) string {
 	return runtime.FuncForPC(reflect.ValueOf(hf).Pointer()).Name()
 	//return fmt.Sprintf("%v", reflect.TypeOf(hf))
 }
@@ -36,9 +36,9 @@ func TestRegexpMux(t *testing.T) {
 	// log.Println(reversed)
 	// log.Println(re.ReplaceAllString("Alan Turing", reversed))
 
-	reg := regexp.MustCompile("/users/(?P<act>[\\w]+)/(?P<id>[\\d]+)")
+	reg := regexp.MustCompile("/users/(?P<act>[\\w]+)/(?P<id>[\\d]+$)")
 
-	urls := []string{"/users/aaa/123", "/users/123/aaa", "/products/123/aaa"}
+	urls := []string{"/users/sdfer/12312/", "/users/sdfer/12312/qweqe", "/users/aaa/123", "/users/123/aaa", "/products/123/aaa"}
 
 	for _, u := range urls {
 		log.Printf("====== %s %s ======", u, reg.String())

@@ -1,6 +1,7 @@
 package ksana
 
 import (
+	"container/list"
 	"errors"
 	"flag"
 	"fmt"
@@ -8,7 +9,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"regexp"
 	// "os/signal"
 	//"time"
 )
@@ -16,7 +16,7 @@ import (
 const VERSION = "v20150510"
 
 type Application struct {
-	mux        *RegexpMux
+	router     Router
 	migrations map[string][]string
 }
 
@@ -45,37 +45,29 @@ func (app *Application) Start() {
 	}
 }
 
-func (app *Application) config(file string) error {
-	ctx := &Context{}
-	err := ctx.load(file)
-	if err != nil {
-		return err
-	}
-	app.migrations = make(map[string][]string, 0)
-	app.mux = &RegexpMux{
-		handlers: make(map[*regexp.Regexp]HandlerFunc, 0),
-		ctx:      ctx}
-
-	return nil
-}
-
 func (app *Application) migrate(file string) error {
+	app.migrations = make(map[string][]string, 0)
 	return nil
 }
 
 func (app *Application) server(file string) error {
-	err := app.config(file)
+	ctx := Context{}
+	err := ctx.load(file)
 	if err != nil {
 		return err
 	}
 
+	app.router = &router{
+		routes: list.New(),
+		ctx:    &ctx}
+
 	log.Printf("=> Booting Ksana(%s)", VERSION)
 	log.Printf(
 		"=> Application starting in %s on http://0.0.0.0:%v",
-		app.mux.ctx.Mode,
-		app.mux.ctx.Port)
+		ctx.Mode,
+		ctx.Port)
 	log.Printf("=> Run `cat %s` for more startup options", file)
 	log.Println("=> Ctrl-C to shutdown server")
 
-	return http.ListenAndServe(fmt.Sprintf(":%d", app.mux.ctx.Port), app.mux)
+	return http.ListenAndServe(fmt.Sprintf(":%d", ctx.Port), app.router)
 }
