@@ -9,7 +9,9 @@ install:
 
 
 clean:
-	-rm -r tmp
+	
+
+
 
 fmt:
 	gofmt -w *.go examples/*.go

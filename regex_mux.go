@@ -1,11 +1,19 @@
 package ksana
 
 import (
-	//"fmt"
+	"fmt"
 	"net/http"
 	"reflect"
 	"regexp"
 	"runtime"
+)
+
+const (
+	_ = iota
+	GET
+	POST
+	PATCH
+	DELETE
 )
 
 type HandlerFunc func(wrt http.ResponseWriter, req *http.Request, ctx *Context)
@@ -19,7 +27,7 @@ func (rm *RegexpMux) ServeHTTP(wrt http.ResponseWriter, req *http.Request) {
 	url := req.URL.Path
 	for r, h := range rm.handlers {
 		if r.MatchString(url) {
-			ctx.Logger.Debug("%s %s MATCH %s", req.Method, url)
+			rm.ctx.Logger.Debug(fmt.Sprintf("%s %s MATCH %s", req.Method, url))
 			//todo 处理request 增加method
 			h(wrt, req, rm.ctx)
 			return
