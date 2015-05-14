@@ -10,6 +10,15 @@ import (
 	"testing"
 )
 
+func TestRouter(t *testing.T) {
+	var rt Route
+	rt = &route{}
+	var rtr Router
+	rtr = &router{}
+
+	log.Printf("ROUTE: %s %v", rt.Method(), rtr)
+}
+
 func Taaa(hf HandlerFunc) string {
 	return runtime.FuncForPC(reflect.ValueOf(hf).Pointer()).Name()
 	//return fmt.Sprintf("%v", reflect.TypeOf(hf))

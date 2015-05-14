@@ -1,16 +1,19 @@
 package ksana
 
 import (
+	"bytes"
 	"container/list"
 	"fmt"
 	"log"
 	"reflect"
 	"regexp"
+	"runtime"
 )
 
 type Params map[string]string
 
 type Handler interface{}
+
 type Controller struct {
 	Index   []Handler
 	New     []Handler
@@ -25,7 +28,8 @@ type Route interface {
 	Method() string
 	Pattern() string
 	Match(url string) bool
-	Parse(url string, params *Params)
+	Parse(url string, params Params)
+	Status(*bytes.Buffer)
 }
 
 type route struct {
@@ -41,6 +45,7 @@ func (r *route) Method() string {
 func (r *route) Pattern() string {
 	return r.regex.String()
 }
+
 func (r *route) Match(url string) bool {
 	return r.regex.MatchString(url)
 }
@@ -55,6 +60,17 @@ func (r *route) Parse(url string, params Params) {
 	}
 }
 
+func (r *route) Status(buf *bytes.Buffer) {
+	fmt.Fprintf(buf, "=== %s\t%s ===\n", r.method, r.Pattern())
+	for i, h := range r.handlers {
+		fmt.Fprintf(
+			buf,
+			"%d: %s\n",
+			i+1,
+			runtime.FuncForPC(reflect.ValueOf(h).Pointer()).Name())
+	}
+}
+
 type Router interface {
 	Get(string, ...Handler)
 	Post(string, ...Handler)
@@ -64,6 +80,7 @@ type Router interface {
 	Any(string, ...Handler)
 	Resources(string, Controller)
 	Add(string, string, ...Handler)
+	Status(*bytes.Buffer)
 }
 
 type router struct {
@@ -108,6 +125,7 @@ func (r *router) Resources(name string, ctl Controller) {
 	r.Add("PUT", fmt.Sprintf("/%s/(?P<id>[\\d]+)", name), ctl.Update)
 	r.Add("DELETE", fmt.Sprintf("/%s/(?P<id>[\\d]+)", name), ctl.Destroy)
 }
+
 func (r *router) Add(mtd, pat string, hs ...Handler) {
 
 	for _, h := range hs {
@@ -119,4 +137,10 @@ func (r *router) Add(mtd, pat string, hs ...Handler) {
 		method:   mtd,
 		regex:    regexp.MustCompile(pat),
 		handlers: hs})
+}
+
+func (r *router) Status(buf *bytes.Buffer) {
+	for it := r.routes.Front(); it != nil; it.Next() {
+		it.Value.(Route).Status(buf)
+	}
 }
