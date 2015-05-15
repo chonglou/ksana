@@ -64,13 +64,14 @@ func (r *route) Parse(url string, params Params) {
 }
 
 func (r *route) Status(buf *bytes.Buffer) {
-	fmt.Fprintf(buf, "=== %s\t%s ===\n", r.method, r.Pattern())
+	fmt.Fprintf(buf, "===== %s %s =====\n", r.method, r.Pattern())
 	for i, h := range r.handlers {
 		fmt.Fprintf(
 			buf,
-			"%d: %s\n",
+			"%d: %s %v\n",
 			i+1,
-			runtime.FuncForPC(reflect.ValueOf(h).Pointer()).Name())
+			runtime.FuncForPC(reflect.ValueOf(h).Pointer()).Name(),
+			reflect.TypeOf(h))
 	}
 }
 
@@ -144,12 +145,16 @@ func (r *router) Resources(name string, ctl Controller) {
 
 func (r *router) add(mtd, pat string, hs []Handler) {
 
+	r.ctx.Logger.Debug("ROUTE ADD - " + mtd + " - " + pat)
 	for _, h := range hs {
-		r.ctx.Logger.Debug(fmt.Sprintf("%s %s %v, %v", mtd, pat, reflect.TypeOf(h), reflect.TypeOf(h).Kind()))
+		// r.ctx.Logger.Debug(fmt.Sprintf(
+		// 	"%s %s %v, %v",
+		// 	mtd, pat, reflect.TypeOf(h), reflect.TypeOf(h).Kind()))
 		if reflect.TypeOf(h).Kind() != reflect.Func {
 			log.Fatalf("ksana handler must be a callable func")
 		}
 	}
+
 	r.routes.PushBack(&route{
 		method:   mtd,
 		regex:    regexp.MustCompile(pat),
@@ -157,7 +162,7 @@ func (r *router) add(mtd, pat string, hs []Handler) {
 }
 
 func (r *router) Status(buf *bytes.Buffer) {
-	for it := r.routes.Front(); it != nil; it.Next() {
+	for it := r.routes.Front(); it != nil; it = it.Next() {
 		it.Value.(Route).Status(buf)
 	}
 }
@@ -167,7 +172,7 @@ func (r *router) ServeHTTP(wrt http.ResponseWriter, req *http.Request) {
 
 	r.ctx.Logger.Info(fmt.Sprintf("%s %s", method, url))
 
-	for it := r.routes.Front(); it != nil; it.Next() {
+	for it := r.routes.Front(); it != nil; it = it.Next() {
 		rt := it.Value.(Route)
 		if rt.Match(method, url) {
 			//r.ctx.Logger.Debug(fmt.Sprintf("MATCH WITH %s", rt.Pattern()))

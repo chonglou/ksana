@@ -19,7 +19,10 @@ Ksana(A golang web framework)
  * [context.xml](examples/context.xml)
 
 ### Usage
+    cd examples/
+    go run app.go -h # show options
+    go run app.go -action migrate # migrate database tables
+    go run app.go -action server # run server
+    go run app.go -action routes # show http routes
 
-    go run app.go -h
-    go run app.go -migrate # need create your database first
-    go run app.go -server
+

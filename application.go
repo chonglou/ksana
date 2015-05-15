@@ -1,6 +1,7 @@
 package ksana
 
 import (
+	"bytes"
 	"container/list"
 	"errors"
 	"flag"
@@ -76,10 +77,18 @@ func (app *application) Start() error {
 		err = app.server()
 	case "migrate":
 		err = app.migrate()
+	case "routes":
+		app.routes()
 	default:
 	}
 
 	return err
+}
+
+func (app *application) routes() {
+	var buf bytes.Buffer
+	app.router.Status(&buf)
+	buf.WriteTo(os.Stdout)
 }
 
 func (app *application) migrate() error {

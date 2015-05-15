@@ -7,6 +7,10 @@ import (
 	"net/http"
 )
 
+func sayHello(wrt http.ResponseWriter) {
+	wrt.Write([]byte("Hello,"))
+}
+
 func main() {
 
 	app, err := ksana.New()
@@ -14,9 +18,7 @@ func main() {
 		log.Fatalf(err.Error())
 	}
 	router := app.Router()
-	router.Get("/hello$", func(wrt http.ResponseWriter) {
-		wrt.Write([]byte("Hello,"))
-	}, func(wrt http.ResponseWriter) {
+	router.Get("/hello$", sayHello, func(wrt http.ResponseWriter) {
 		wrt.Write([]byte(" Ksana(HTTP GET)!"))
 	})
 	router.Any("/test$", func(wrt http.ResponseWriter) {
@@ -24,9 +26,7 @@ func main() {
 	})
 
 	fns := []ksana.Handler{
-		func(wrt http.ResponseWriter) {
-			wrt.Write([]byte("Hello, "))
-		},
+		sayHello,
 		func(wrt http.ResponseWriter) {
 			wrt.Write([]byte("Ksana"))
 		},
