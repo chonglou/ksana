@@ -29,7 +29,10 @@ type migration struct {
 }
 
 func (m *migration) Add(v, u, d string) {
-	m.items.PushBack(migrationItem{version: v, up: u, down: d})
+	m.items.PushBack(migrationItem{
+		version: v,
+		up:      u,
+		down:    d})
 }
 
 func (m *migration) Migrate() error {
@@ -59,6 +62,7 @@ func (m *migration) Migrate() error {
 
 		if is {
 			log.Printf("Migrate %s", mi.version)
+			log.Println(mi.up)
 			_, e := m.db.Exec(mi.up)
 			if e != nil {
 				return e
@@ -93,6 +97,7 @@ func (m *migration) Rollback() error {
 		mi := it.Value.(migrationItem)
 
 		if v == mi.version {
+			log.Println(mi.down)
 			_, e = m.db.Exec(mi.down)
 			if e != nil {
 				return e

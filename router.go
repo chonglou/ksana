@@ -132,15 +132,15 @@ func (r *router) Any(pat string, hs ...Handler) {
 
 func (r *router) Resources(name string, ctl Controller) {
 
-	r.add("GET", fmt.Sprintf("/%s$", name), ctl.Index)
-	r.add("GET", fmt.Sprintf("/%s/(?P<id>[\\d]+$)", name), ctl.Show)
-	r.add("GET", fmt.Sprintf("/%s/new$", name), ctl.New)
-	r.add("GET", fmt.Sprintf("/%s/(?P<id>[\\d]+)/edit$", name), ctl.Edit)
+	r.add("GET", fmt.Sprintf("%s$", name), ctl.Index)
+	r.add("GET", fmt.Sprintf("%s/(?P<id>[\\d]+$)", name), ctl.Show)
+	r.add("GET", fmt.Sprintf("%s/new$", name), ctl.New)
+	r.add("GET", fmt.Sprintf("%s/(?P<id>[\\d]+)/edit$", name), ctl.Edit)
 
-	r.add("POST", fmt.Sprintf("/%s$", name), ctl.Create)
-	r.add("PATCH", fmt.Sprintf("/%s/(?P<id>[\\d]+$)", name), ctl.Update)
-	r.add("PUT", fmt.Sprintf("/%s/(?P<id>[\\d]+$)", name), ctl.Update)
-	r.add("DELETE", fmt.Sprintf("/%s/(?P<id>[\\d]+$)", name), ctl.Destroy)
+	r.add("POST", fmt.Sprintf("%s$", name), ctl.Create)
+	r.add("PATCH", fmt.Sprintf("%s/(?P<id>[\\d]+$)", name), ctl.Update)
+	r.add("PUT", fmt.Sprintf("%s/(?P<id>[\\d]+$)", name), ctl.Update)
+	r.add("DELETE", fmt.Sprintf("%s/(?P<id>[\\d]+$)", name), ctl.Destroy)
 }
 
 func (r *router) add(mtd, pat string, hs []Handler) {

@@ -19,7 +19,7 @@ func TestHmac(t *testing.T) {
 	key := RandomBytes(32)
 	h := Hmac{key: key}
 	dest := h.Sum([]byte(hello))
-	log.Printf("HMAC: %x", dest)
+	log.Printf("HMAC(%d): %x", len(dest), dest)
 	if !h.Equal(h.Sum([]byte(hello)), dest) {
 		t.Errorf("HMAC FAILED!")
 	}

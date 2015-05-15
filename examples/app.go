@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/chonglou/ksana"
+	"github.com/chonglou/ksana/auth"
 	_ "github.com/lib/pq"
 	"log"
 	"net/http"
@@ -38,7 +39,7 @@ func main() {
 		}}
 
 	router.Resources(
-		"users",
+		"/tags",
 		ksana.Controller{
 			Index:   fns,
 			Show:    fns,
@@ -57,6 +58,10 @@ func main() {
 	mig.Add("201505151053", "CREATE TABLE T3(f1 INT)", "DROP TABLE T3")
 	mig.Add("201505151054", "CREATE TABLE T4(f1 INT)", "DROP TABLE T4")
 	mig.Add("201505151055", "CREATE TABLE T5(f1 INT)", "DROP TABLE T5")
+
+	//------------------Engine-----------------------------------
+	ae := auth.AuthEngine{}
+	app.Mount("/auth", &ae)
 
 	//-------------------SERVER----------------------------
 

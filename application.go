@@ -20,6 +20,7 @@ type Application interface {
 	Start() error
 	Router() Router
 	Migration() Migration
+	Mount(path string, engine Engine)
 }
 
 func New() (Application, error) {
@@ -67,6 +68,11 @@ type application struct {
 	ctx       *Context
 	router    Router
 	migration Migration
+}
+
+func (app *application) Mount(p string, e Engine) {
+	e.Migration(app.Migration())
+	e.Router(p, app.Router())
 }
 
 func (app *application) Migration() Migration {
