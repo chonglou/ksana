@@ -87,6 +87,7 @@ func (m *migration) Rollback() error {
 	if v == "" {
 		return errors.New("Empty database")
 	}
+	log.Printf("Current version: %s", v)
 
 	for it := m.items.Front(); it != nil; it = it.Next() {
 		mi := it.Value.(migrationItem)

@@ -19,6 +19,7 @@ const VERSION = "v20150510"
 type Application interface {
 	Start() error
 	Router() Router
+	Migration() Migration
 }
 
 func New() (Application, error) {
@@ -42,11 +43,15 @@ func New() (Application, error) {
 					router: &router{
 						routes: list.New(),
 						ctx:    &ctx},
-					migration: &migration{db: ctx.db, items: list.New()},
+					migration: &migration{
+						db:    ctx.Db,
+						items: list.New()},
+				}
 			}
 			break
 		}
 	}
+
 	if app == nil {
 		err = errors.New(
 			fmt.Sprintf("Unknown action, please use `%s -h` for more options.",
@@ -57,11 +62,15 @@ func New() (Application, error) {
 }
 
 type application struct {
-	config     string
-	action     string
-	ctx        *Context
-	router     Router
-	migration  Migration
+	config    string
+	action    string
+	ctx       *Context
+	router    Router
+	migration Migration
+}
+
+func (app *application) Migration() Migration {
+	return app.migration
 }
 
 func (app *application) Router() Router {
@@ -92,7 +101,6 @@ func (app *application) routes() {
 	app.router.Status(&buf)
 	buf.WriteTo(os.Stdout)
 }
-
 
 func (app *application) server() error {
 	log.Printf("=> Booting Ksana(%s)", VERSION)

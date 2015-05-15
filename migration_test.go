@@ -16,7 +16,7 @@ func TestMigration(t *testing.T) {
 	defer db.Close()
 
 	var m Migration
-	m = migration{db: db, items: list.New()}
+	m = &migration{db: db, items: list.New()}
 
 	m.Add("201505151051", "CREATE TABLE T1(f1 INT)", "DROP TABLE T1")
 	m.Add("201505151052", "CREATE TABLE T2(f1 INT)", "DROP TABLE T2")
