@@ -10,6 +10,12 @@ import (
 
 const migrations_table_name = "schema_migrations"
 
+type Migration interface {
+	Add(v, u, d string)
+	Migrate() error
+	Rollback() error
+}
+
 type migrationItem struct {
 	version string
 	up      string

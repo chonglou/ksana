@@ -23,13 +23,13 @@ type Application interface {
 
 func New() (Application, error) {
 	cfg := flag.String("config", "context.xml", "configuration filename")
-	act := flag.String("action", "server", "server | migrate | routes")
+	act := flag.String("run", "server", "running: server | migrate | rollbock | routes")
 	flag.Parse()
 
 	var err error
 	var app Application
 
-	for _, a := range []string{"server", "migrate", "routes"} {
+	for _, a := range []string{"server", "migrate", "routes", "rollback"} {
 		if a == *act {
 			ctx := Context{}
 			err = ctx.load(*cfg)
@@ -42,7 +42,7 @@ func New() (Application, error) {
 					router: &router{
 						routes: list.New(),
 						ctx:    &ctx},
-					migrations: make(map[string]string, 0)}
+					migration: &migration{db: ctx.db, items: list.New()},
 			}
 			break
 		}
@@ -61,7 +61,7 @@ type application struct {
 	action     string
 	ctx        *Context
 	router     Router
-	migrations map[string]string
+	migration  Migration
 }
 
 func (app *application) Router() Router {
@@ -76,7 +76,9 @@ func (app *application) Start() error {
 	case "server":
 		err = app.server()
 	case "migrate":
-		err = app.migrate()
+		err = app.migration.Migrate()
+	case "rollback":
+		err = app.migration.Rollback()
 	case "routes":
 		app.routes()
 	default:
@@ -91,9 +93,6 @@ func (app *application) routes() {
 	buf.WriteTo(os.Stdout)
 }
 
-func (app *application) migrate() error {
-	return nil
-}
 
 func (app *application) server() error {
 	log.Printf("=> Booting Ksana(%s)", VERSION)

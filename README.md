@@ -15,14 +15,13 @@ Ksana(A golang web framework)
 
 ### Files
 
- * [app.go](examples/app.go) 
+ * [app.go](examples/app.go)
  * [context.xml](examples/context.xml)
 
 ### Usage
     cd examples/
     go run app.go -h # show options
-    go run app.go -action migrate # migrate database tables
-    go run app.go -action server # run server
-    go run app.go -action routes # show http routes
-
-
+    go run app.go -run migrate  # database migrate
+    go run app.go -run rollback # database rollback
+    go run app.go -run server   # run server
+    go run app.go -run routes   # show http routes
