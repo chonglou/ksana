@@ -91,7 +91,6 @@ type Router interface {
 	Delete(string, ...Handler)
 	Any(string, ...Handler)
 	Resources(string, Controller)
-	Add(string, string, ...Handler)
 
 	Status(*bytes.Buffer)
 	ServeHTTP(http.ResponseWriter, *http.Request)
@@ -103,49 +102,50 @@ type router struct {
 }
 
 func (r *router) Get(pat string, hs ...Handler) {
-	r.Add("GET", pat, hs)
+	r.add("GET", pat, hs)
 }
 
 func (r *router) Post(pat string, hs ...Handler) {
-	r.Add("POST", pat, hs)
+	r.add("POST", pat, hs)
 }
 
 func (r *router) Patch(pat string, hs ...Handler) {
-	r.Add("PATCH", pat, hs)
+	r.add("PATCH", pat, hs)
 }
 
 func (r *router) Put(pat string, hs ...Handler) {
-	r.Add("PUT", pat, hs)
+	r.add("PUT", pat, hs)
 }
 
 func (r *router) Delete(pat string, hs ...Handler) {
-	r.Add("DELETE", pat, hs)
+	r.add("DELETE", pat, hs)
 }
 
 func (r *router) Any(pat string, hs ...Handler) {
-	r.Get(pat, hs)
-	r.Post(pat, hs)
-	r.Patch(pat, hs)
-	r.Put(pat, hs)
-	r.Delete(pat, hs)
+	r.add("GET", pat, hs)
+	r.add("POST", pat, hs)
+	r.add("PATCH", pat, hs)
+	r.add("PUT", pat, hs)
+	r.add("DELETE", pat, hs)
 }
 
 func (r *router) Resources(name string, ctl Controller) {
 
-	r.Add("GET", fmt.Sprintf("/%s$", name), ctl.Index)
-	r.Add("GET", fmt.Sprintf("/%s/(?P<id>[\\d]+$)", name), ctl.Show)
-	r.Add("GET", fmt.Sprintf("/%s/new$", name), ctl.New)
-	r.Add("GET", fmt.Sprintf("/%s/(?P<id>[\\d]+)/edit$", name), ctl.Edit)
+	r.add("GET", fmt.Sprintf("/%s$", name), ctl.Index)
+	r.add("GET", fmt.Sprintf("/%s/(?P<id>[\\d]+$)", name), ctl.Show)
+	r.add("GET", fmt.Sprintf("/%s/new$", name), ctl.New)
+	r.add("GET", fmt.Sprintf("/%s/(?P<id>[\\d]+)/edit$", name), ctl.Edit)
 
-	r.Add("POST", fmt.Sprintf("/%s$", name), ctl.Create)
-	r.Add("PATCH", fmt.Sprintf("/%s/(?P<id>[\\d]+$)", name), ctl.Update)
-	r.Add("PUT", fmt.Sprintf("/%s/(?P<id>[\\d]+$)", name), ctl.Update)
-	r.Add("DELETE", fmt.Sprintf("/%s/(?P<id>[\\d]+$)", name), ctl.Destroy)
+	r.add("POST", fmt.Sprintf("/%s$", name), ctl.Create)
+	r.add("PATCH", fmt.Sprintf("/%s/(?P<id>[\\d]+$)", name), ctl.Update)
+	r.add("PUT", fmt.Sprintf("/%s/(?P<id>[\\d]+$)", name), ctl.Update)
+	r.add("DELETE", fmt.Sprintf("/%s/(?P<id>[\\d]+$)", name), ctl.Destroy)
 }
 
-func (r *router) Add(mtd, pat string, hs ...Handler) {
+func (r *router) add(mtd, pat string, hs []Handler) {
 
 	for _, h := range hs {
+		r.ctx.Logger.Debug(fmt.Sprintf("%s %s %v, %v", mtd, pat, reflect.TypeOf(h), reflect.TypeOf(h).Kind()))
 		if reflect.TypeOf(h).Kind() != reflect.Func {
 			log.Fatalf("ksana handler must be a callable func")
 		}
@@ -170,7 +170,7 @@ func (r *router) ServeHTTP(wrt http.ResponseWriter, req *http.Request) {
 	for it := r.routes.Front(); it != nil; it.Next() {
 		rt := it.Value.(Route)
 		if rt.Match(method, url) {
-			r.ctx.Logger.Debug(fmt.Sprintf("MATCH WITH %s", rt.Pattern()))
+			//r.ctx.Logger.Debug(fmt.Sprintf("MATCH WITH %s", rt.Pattern()))
 			err := rt.Call(func(i int, h Handler) error {
 				//todo 处理
 				r.ctx.Logger.Debug(fmt.Sprintf("%v %v", i, h))
