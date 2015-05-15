@@ -7,8 +7,9 @@ import (
 	"net/http"
 )
 
-func sayHello(wrt http.ResponseWriter) {
+func sayHello(wrt http.ResponseWriter) error {
 	wrt.Write([]byte("Hello,"))
+	return nil
 }
 
 func main() {
