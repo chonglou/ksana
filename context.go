@@ -4,9 +4,44 @@ import (
 	"database/sql"
 	"github.com/fzzy/radix/extra/pool"
 	"github.com/fzzy/radix/redis"
+	"log"
 	"log/syslog"
 	"os"
 )
+
+var beans = make(map[string]interface{})
+
+func Register(name string, bean interface{}) {
+	if bean == nil {
+		log.Fatalf("Register bean is nil")
+	}
+	if _, dup := beans[name]; dup {
+		log.Fatalf("Register called twice for bean " + name)
+	}
+	beans[name] = bean
+}
+
+func Load(name string) {
+	xf, err := os.Open(file)
+	if err != nil {
+		log.Fatalf("Error on open config file: %v", err)
+	}
+	defer xf.Close()
+
+	var data []byte
+	data, err = ioutil.ReadAll(xf)
+	if err != nil {
+		log.Fatalf("Error on read config file: %v", err)
+	}
+
+	err = xml.Unmarshal(data, cfg)
+	if err != nil {
+		log.Fatalf("Error on parse config file: %v", err)
+	}
+	return nil
+}
+
+//------------------------------------------------------------------------------
 
 type Context struct {
 	Redis  *pool.Pool

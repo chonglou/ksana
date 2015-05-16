@@ -51,6 +51,7 @@ type configuration struct {
 	Beans []bean `xml:"bean"`
 }
 
+//------------------------------------------------------------------------------
 func loadConfiguration(file string, cfg *configuration) error {
 	xf, err := os.Open(file)
 	if err != nil {
