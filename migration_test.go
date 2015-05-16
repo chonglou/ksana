@@ -9,7 +9,7 @@ import (
 )
 
 func TestMigration(t *testing.T) {
-	db, err := sql.Open("postgres", "postgres://postgres@localhost/ksana?sslmode=disable")
+	db, err := sql.Open("postgres", "postgres://postgres@localhost/ksana_t?sslmode=disable")
 	if err != nil {
 		t.Errorf("Open database: %v", err)
 	}

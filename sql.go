@@ -2,7 +2,6 @@ package ksana
 
 import (
 	"bytes"
-	"database/sql"
 	"fmt"
 	"strconv"
 	"strings"
@@ -13,178 +12,137 @@ type Sql struct {
 	driver string
 }
 
-func (s *Sql) Float(string name, null false, def string) {
-	var buf bytes.Buffer
-	buf.WriteString(name)
-	switch s.driver {
-	case "postgres":
-		buf.WriteString(" REAL")
-	default:
-		buf.WriteString(" FLOAT")
-	}
-	if !null {
-		buf.WriteString(" NOT NULL")
-	}
-	if def != "" {
-		buf.WriteString(" DEFAULT ")
-		buf.WriteString(def)
-	}
-	return buf.String()
+//-------------------------column-----------------------------------------------
+func (s *Sql) DateOf(t time.Time) string {
+	return t.Format("2006-01-02")
 }
 
-func (s *Sql) Double(string name, null false, def string) {
-	var buf bytes.Buffer
-	buf.WriteString(name)
-	switch s.driver {
-	case "postgres":
-		buf.WriteString(" DOUBLE PRECISION")
-	default:
-		buf.WriteString(" DOUBLE")
-	}
-	if !null {
-		buf.WriteString(" NOT NULL")
-	}
-	if def != "" {
-		buf.WriteString(" DEFAULT ")
-		buf.WriteString(def)
-	}
-	return buf.String()
+func (s *Sql) TimeOf(t time.Time) string {
+	return t.Format("15:04:05")
 }
 
-func (s *Sql) Blob(string name, null false) string {
-	var buf bytes.Buffer
-	buf.WriteString(name)
-	switch s.driver {
-	case "postgres":
-		buf.WriteString(" BYTEA")
-	default:
-		buf.WriteString(" BLOB")
-	}
-	if !null {
-		buf.WriteString(" NOT NULL")
-	}
-	return buf.String()
+func (s *Sql) DatetimeOf(t time.Time) string {
+	return t.Format("2006-01-02 15:04:05")
 }
 
-func (s *Sql) Byte(string name, size int, null false) string {
-	var buf bytes.Buffer
-	buf.WriteString(name)
+func (s *Sql) Float(name string, m, d int, null bool, def string) string {
+
 	switch s.driver {
 	case "postgres":
-		buf.WriteString(" BIT")
+		return s.column(name, "REAL", null, def)
 	default:
-		buf.WriteString(" VARBINARY")
+		return s.column(name, "FLOAT("+strconv.Itoa(m)+","+strconv.Itoa(d)+")", null, def)
 	}
-	buf.WriteString("(")
-	buf.WriteString(size)
-	buf.WriteString(")")
-	if !null {
-		buf.WriteString(" NOT NULL")
-	}
-	return buf.String()
 }
 
-func (s *Sql) Bool(string name, null false, def bool) string {
-	var buf bytes.Buffer
-	buf.WriteString(name)
+func (s *Sql) Numeric(name string, m, d int, null bool, def string) string {
 	switch s.driver {
 	case "postgres":
-		buf.WriteString(" BOOLEAN")
+		return s.column(name, "NUMERIC("+strconv.Itoa(m)+","+strconv.Itoa(d)+")", null, def)
 	default:
-		buf.WriteString(" TINYINT")
+		return s.Double(name, m, d, null, def)
 	}
 
-	if !null {
-		buf.WriteString(" NOT NULL")
+}
+
+func (s *Sql) Double(name string, m, d int, null bool, def string) string {
+
+	switch s.driver {
+	case "postgres":
+		return s.column(name, "DOUBLE PRECISION", null, def)
+	default:
+		return s.column(name, "DOUBLE("+strconv.Itoa(m)+","+strconv.Itoa(d)+")", null, def)
 	}
-	if def != nil {
-		buf.WriteString(" DEFAULT")
-		switch s.driver {
-		case "postgres":
-			if def {
-				buf.WriteString(" TRUE")
-			} else {
-				buf.WriteString(" FALSE")
-			}
-		default:
-			if def {
-				buf.WriteString(" 1")
-			} else {
-				buf.WriteString(" 0")
-			}
+}
+
+func (s *Sql) Byte(name string, size int, null bool) string {
+
+	switch s.driver {
+	case "postgres":
+		return s.column(name, "BIT("+strconv.Itoa(size)+")", null, "")
+	default:
+		return s.column(name, "VARBINARY("+strconv.Itoa(size)+")", null, "")
+	}
+}
+
+func (s *Sql) Blob(name string, null bool) string {
+	switch s.driver {
+	case "postgres":
+		return s.column(name, "BYTEA", null, "")
+	default:
+		return s.column(name, "BLOB", null, "")
+	}
+}
+
+func (s *Sql) Bool(name string, null bool, def bool) string {
+
+	switch s.driver {
+	case "postgres":
+		if def {
+			return s.column(name, "BOOLEAN", null, "TRUE")
+		} else {
+			return s.column(name, "BOOLEAN", null, "FALSE")
+		}
+	default:
+		if def {
+			return s.column(name, "TINYINT", null, "1")
+		} else {
+			return s.column(name, "TINYINT", null, "0")
 		}
 	}
-
-	return buf.String()
 }
 
-func (s *Sql) Text(string name, null false, def string) string {
-	var buf bytes.Buffer
-	buf.WriteString(name)
-	buf.WriteString(" TEXT")
-	if !null {
-		buf.WriteString(" NOT NULL")
-	}
-	if def != nil {
-		buf.WriteString(" DEFAULT '")
-		buf.WriteString(def)
-		buf.WriteString("'")
-	}
-
-	return buf.String()
+func (s *Sql) Text(name string, null bool, def string) string {
+	return s.column(name, "TEXT", null, "'"+def+"'")
 }
 
-func (s *Sql) Time(string name, null false, def time.Time) string {
-	var buf bytes.Buffer
-	buf.WriteString(name)
-	buf.WriteString(" TIME")
-	if !null {
-		buf.WriteString(" NOT NULL")
-	}
-	if def != nil {
-		buf.WriteString(" DEFAULT '")
-		buf.WriteString(def.Format("15:04:05"))
-		buf.WriteString("'")
-	}
-
-	return buf.String()
+func (s *Sql) Time(name string, null bool, def string) string {
+	return s.column(name, "DATE", null, "'"+def+"'")
 }
 
-func (s *Sql) Date(string name, null false, def time.Time) string {
-	var buf bytes.Buffer
-	buf.WriteString(name)
-	buf.WriteString(" DATE")
-	if !null {
-		buf.WriteString(" NOT NULL")
-	}
-	if def != nil {
-		buf.WriteString(" DEFAULT '")
-		buf.WriteString(def.Format("2006-01-02"))
-		buf.WriteString("'")
-	}
-
-	return buf.String()
+func (s *Sql) Date(name string, null bool, def string) string {
+	return s.column(name, "DATE", null, "'"+def+"'")
 }
 
-func (s *Sql) Datetime(string name, null false, def time.Time) string {
-	var buf bytes.Buffer
-	buf.WriteString(name)
+func (s *Sql) Datetime(name string, null bool, def string) string {
 	switch s.driver {
 	case "postgres":
-		buf.WriteString(" TIMESTAMP ")
+		return s.column(name, "TIMESTAMP", null, "'"+def+"'")
 	default:
-		buf.WriteString(" DATETIME ")
+		return s.column(name, "DATETIME", null, "'"+def+"'")
 	}
+}
+
+func (s *Sql) Char(name string, size int, null bool, def string) string {
+	return s.column(name, "CHAR("+strconv.Itoa(size)+")", null, "'"+def+"'")
+}
+
+func (s *Sql) String(name string, size int, null bool, def string) string {
+	return s.column(name, "VARCHAR("+strconv.Itoa(size)+")", null, "'"+def+"'")
+}
+
+func (s *Sql) Long(name string, null bool, def int64) string {
+	return s.column(name, "BIGINT", null, strconv.FormatInt(def, 10))
+}
+
+func (s *Sql) Int(name string, null bool, def int) string {
+	return s.column(name, "INT", null, strconv.Itoa(def))
+}
+
+func (s *Sql) Short(name string, null bool, def int) string {
+	return s.column(name, "SMALLINT", null, strconv.Itoa(def))
+}
+
+func (s *Sql) column(name string, _type string, null bool, def string) string {
+	ns, ds := "", ""
 	if !null {
-		buf.WriteString(" NOT NULL ")
+		ns = " NOT NULL"
 	}
-	if def != nil {
-		buf.WriteString(" DEFAULT '")
-		buf.WriteString(def.Format("2006-01-02 15:04:05"))
-		buf.WriteString("'")
+	if def != "" {
+		ds = " DEFAULT " + def
 	}
 
-	return buf.String()
+	return fmt.Sprintf("%s %s%s%s", name, _type, ns, ds)
 }
 
 func (s *Sql) Created() string {
@@ -194,76 +152,6 @@ func (s *Sql) Created() string {
 	default:
 		return "created TIMESTAMP NOT NULL DEFAULT NOW()"
 	}
-}
-
-func (s *Sql) Char(name string, size int, null bool, def string) string {
-	var buf bytes.Buffer
-	buf.WriteString(name)
-	buf.WriteString(" CHAR")
-
-	buf.WriteString("(")
-	buf.WriteString(strconv.Itoa(size))
-	buf.WriteString(")")
-
-	if !null {
-		buf.WriteString(" NOT NULL ")
-	}
-	if def != "" {
-		buf.WriteString("DEFAULT '")
-		buf.WriteString(def)
-		buf.WriteString("'")
-	}
-	return buf.String()
-}
-
-func (s *Sql) String(name string, size int, null bool, def string) string {
-	var buf bytes.Buffer
-	buf.WriteString(name)
-	buf.WriteString(" VARCHAR(")
-
-	buf.WriteString(strconv.Itoa(size))
-	buf.WriteString(")")
-
-	if !null {
-		buf.WriteString(" NOT NULL ")
-	}
-
-	if def != "" {
-		buf.WriteString("DEFAULT '")
-		buf.WriteString(def)
-		buf.WriteString("'")
-	}
-	return buf.String()
-}
-
-func (s *Sql) Int64(name string, null bool, def string) string {
-
-	var buf bytes.Buffer
-	buf.WriteString(name)
-	buf.WriteString(" BIGINT ")
-	if !null {
-		buf.WriteString("NOT NULL ")
-	}
-	if def != "" {
-		buf.WriteString("DEFAULT ")
-		buf.WriteString(def)
-	}
-	return buf.String()
-}
-
-func (s *Sql) Int32(name string, null bool, def string) string {
-
-	var buf bytes.Buffer
-	buf.WriteString(name)
-	buf.WriteString(" INTEGER ")
-	if !null {
-		buf.WriteString("NOT NULL ")
-	}
-	if def != "" {
-		buf.WriteString("DEFAULT ")
-		buf.WriteString(def)
-	}
-	return buf.String()
 }
 
 func (s *Sql) Id(uuid bool) string {
@@ -278,55 +166,56 @@ func (s *Sql) Id(uuid bool) string {
 		if uuid {
 			return "id CHAR(36) PRIMARY KEY NOT NULL"
 		} else {
-			return "id BIGINT NOT NULL AUTO_INCREMENT"
+			return "id INT NOT NULL AUTO_INCREMENT"
 		}
 	}
 }
 
-func (s *Sql) CreateTable(name, id, columns ...string) {
-	var buf bytes.Buffer
-	buf.WriteString("CREATE TABLE IF NOT EXISTS ")
-	buf.WriteString(name)
-	buf.WriteString("(")
-	buf.WriteString(strings.Join(columns, ","))
-	buf.WriteString(")")
-	return buf.String()
+//---------------------------SQL------------------------------------------------
+func (s *Sql) CreateTable(buf *bytes.Buffer, name string, columns ...string) {
+	fmt.Fprintf(buf,
+		"CREATE TABLE IF NOT EXISTS %s(%s)",
+		name, strings.Join(columns, ","))
 }
 
-func (s *Sql) DropTable(name) string {
-	return fmt.Sprintf("DROP TABLE IF EXISTS %s", name)
+func (s *Sql) DropTable(buf *bytes.Buffer, name string) {
+	fmt.Fprintf(buf, "DROP TABLE IF EXISTS %s", name)
 }
 
-func (s *Sql) CreateIndex(name, table string, unique bool, columns ...string) string {
-	var buf bytes.Buffer
-	buf.WriteString("CREATE ")
+func (s *Sql) CreateIndex(buf *bytes.Buffer,
+	name, table string, unique bool, columns ...string) {
+
+	inx := "INDEX"
 	if unique {
-		buf.WriteString("UNIQUE ")
+		inx = "UNIQUE " + inx
 	}
-	buf.WriteString("INDEX ")
-	buf.WirteString(name)
-	buf.WriteString("_idx ON ")
-	buf.WriteString(table)
-	buf.WriteString(" (")
-	buf.WriteString(strings.Join(columns, ","))
-	buf.WriteString(")")
-	return buf.String()
+	fmt.Fprintf(buf,
+		"CREATE %s %s_inx ON %s (%s)",
+		inx, name, table, strings.Join(columns, ","))
 }
 
-func (s *Sql) DropIndex(name) string {
-	return "DROP INDEX IF EXISTS %s_idx"
+func (s *Sql) DropIndex(buf *bytes.Buffer, name string) {
+	fmt.Fprintf(buf, "DROP INDEX IF EXISTS %s_idx", name)
 }
 
-func (s *Sql) CreateDatabase(name) string {
+func (s *Sql) CreateDatabase(buf *bytes.Buffer, name string) {
 	switch s.driver {
+	case "postgres":
+		fmt.Fprintf(buf, "CREATE DATABASE %s ENCODING 'utf-8'", name)
 	case "mysql":
-		return fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s DEFAULT CHARACTER SET utf8", name)
+		fmt.Fprintf(buf, "CREATE DATABASE IF NOT EXISTS %s DEFAULT CHARACTER SET utf8", name)
 	default:
-		return fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s", name)
+		logger.Warning("Not support create database on " + s.driver)
 	}
 
 }
 
-func (s *Sql) DropDatabase(name) string {
-	return fmt.Sprintf("DROP DATABASE IF EXISTS %s", name)
+func (s *Sql) DropDatabase(buf *bytes.Buffer, name string) {
+	switch s.driver {
+	case "postgres", "mysql":
+		fmt.Fprintf(buf, "DROP DATABASE IF EXISTS %s", name)
+	default:
+		logger.Warning("Not support drop database on " + s.driver)
+	}
+
 }
