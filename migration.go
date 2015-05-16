@@ -1,6 +1,7 @@
 package ksana
 
 import (
+	"bytes"
 	"container/list"
 	"database/sql"
 	"errors"
@@ -67,9 +68,10 @@ func (m *migration) Migrate() error {
 			if e != nil {
 				return e
 			}
-			_, e = m.db.Exec(
-				"INSERT INTO "+migrations_table_name+"(version) VALUES($1)",
-				mi.version)
+
+			sq := SQL.Insert(migrations_table_name, "version")
+			logger.Info(sq)
+			_, e = m.db.Exec(sq, mi.version)
 			if e != nil {
 				return e
 			}
@@ -103,9 +105,10 @@ func (m *migration) Rollback() error {
 				return e
 			}
 			log.Printf("Rollback %s", mi.version)
-			_, e = m.db.Exec(
-				"DELETE FROM "+migrations_table_name+" WHERE version = $1",
-				mi.version)
+
+			s1 := SQL.Delete(migrations_table_name, "version = $1")
+			logger.Info(s1)
+			_, e = m.db.Exec(s1, mi.version)
 			return e
 		}
 	}
@@ -114,20 +117,22 @@ func (m *migration) Rollback() error {
 }
 
 func (m *migration) version() (string, error) {
-	_, e := m.db.Exec(
-		"CREATE TABLE IF NOT EXISTS " +
-			migrations_table_name +
-			"(id SERIAL, version VARCHAR(16) NOT NULL UNIQUE)")
+	var buf bytes.Buffer
+	SQL.CreateTable(&buf, migrations_table_name, SQL.Id(false), SQL.String("version", 16, true, false, ""))
+	sq := buf.String()
+	logger.Debug(sq)
 
+	_, e := m.db.Exec(sq)
 	if e != nil {
 		return "", e
 	}
 
 	var r *sql.Rows
-	r, e = m.db.Query(
-		"SELECT version FROM " +
-			migrations_table_name +
-			" ORDER BY id DESC LIMIT 1")
+
+	sq = SQL.Select(migrations_table_name, []string{"version"}, "", SQL.Order("id", false), 0, 1)
+	logger.Debug(sq)
+
+	r, e = m.db.Query(sq)
 	if e != nil {
 		return "", e
 	}

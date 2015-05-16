@@ -40,6 +40,7 @@ func (s *Sql) Numeric(name string, m, d int, null bool, def string) string {
 	case "postgres":
 		return s.column(name, "NUMERIC("+strconv.Itoa(m)+","+strconv.Itoa(d)+")", null, def)
 	default:
+		logger.Warning("Not support numeric on " + s.driver + ", using double instead!!!")
 		return s.Double(name, m, d, null, def)
 	}
 
@@ -93,32 +94,56 @@ func (s *Sql) Bool(name string, null bool, def bool) string {
 }
 
 func (s *Sql) Text(name string, null bool, def string) string {
-	return s.column(name, "TEXT", null, "'"+def+"'")
+	if def != "" {
+		def = "'" + def + "'"
+	}
+	return s.column(name, "TEXT", null, def)
 }
 
 func (s *Sql) Time(name string, null bool, def string) string {
-	return s.column(name, "DATE", null, "'"+def+"'")
+	if def != "" {
+		def = "'" + def + "'"
+	}
+	return s.column(name, "DATE", null, def)
 }
 
 func (s *Sql) Date(name string, null bool, def string) string {
-	return s.column(name, "DATE", null, "'"+def+"'")
+
+	if def != "" {
+		def = "'" + def + "'"
+	}
+	return s.column(name, "DATE", null, def)
 }
 
 func (s *Sql) Datetime(name string, null bool, def string) string {
+
+	if def != "" {
+		def = "'" + def + "'"
+	}
 	switch s.driver {
 	case "postgres":
-		return s.column(name, "TIMESTAMP", null, "'"+def+"'")
+		return s.column(name, "TIMESTAMP", null, def)
 	default:
-		return s.column(name, "DATETIME", null, "'"+def+"'")
+		return s.column(name, "DATETIME", null, def)
 	}
 }
 
 func (s *Sql) Char(name string, size int, null bool, def string) string {
-	return s.column(name, "CHAR("+strconv.Itoa(size)+")", null, "'"+def+"'")
+	if def != "" {
+		def = "'" + def + "'"
+	}
+	return s.column(name, "CHAR("+strconv.Itoa(size)+")", null, def)
 }
 
-func (s *Sql) String(name string, size int, null bool, def string) string {
-	return s.column(name, "VARCHAR("+strconv.Itoa(size)+")", null, "'"+def+"'")
+func (s *Sql) String(name string, size int, unique bool, null bool, def string) string {
+	t := "VARCHAR(" + strconv.Itoa(size) + ")"
+	if unique {
+		t += " UNIQUE"
+	}
+	if def != "" {
+		def = "'" + def + "'"
+	}
+	return s.column(name, t, null, def)
 }
 
 func (s *Sql) Long(name string, null bool, def int64) string {
@@ -171,7 +196,67 @@ func (s *Sql) Id(uuid bool) string {
 	}
 }
 
-//---------------------------SQL------------------------------------------------
+//---------------------------Sql------------------------------------------------
+func (s *Sql) Insert(name string, columns ...string) string {
+	vs := make([]string, len(columns))
+	switch s.driver {
+	case "postgres":
+		for i, _ := range columns {
+			vs[i] = fmt.Sprintf("$%d", i+1)
+		}
+	default:
+		for i, _ := range columns {
+			vs[i] = "?"
+		}
+
+	}
+	return fmt.Sprintf(
+		"INSERT INTO %s(%s) VALUES(%s)",
+		name,
+		strings.Join(columns, ", "),
+		strings.Join(vs, ", "))
+}
+
+func (s *Sql) Delete(name, where string) string {
+	if where != "" {
+		where = " WHERE " + where
+	}
+	return fmt.Sprintf("DELETE FROM %s%s", name, where)
+}
+func (s *Sql) Order(name string, asc bool) string {
+	if asc {
+		return name + " ASC"
+	}
+	return name + " DESC"
+
+}
+func (s *Sql) Select(table string, columns []string, where, order string, offset, limit int) string {
+	cs, ls := "*", ""
+	if columns != nil {
+		cs = strings.Join(columns, ",")
+	}
+	if where != "" {
+		where = " WHERE " + where
+	}
+
+	if order != "" {
+		order = " ORDER BY " + order
+	}
+
+	switch s.driver {
+	case "postgres":
+		if limit > 0 {
+			ls = fmt.Sprintf(" LIMIT %d OFFSET %d", limit, offset)
+		}
+	case "mysql":
+		if limit > 0 {
+			ls = fmt.Sprintf(" LIMIT %d,%d", offset, limit)
+		}
+	default:
+		logger.Warning("Not support page query for database " + s.driver)
+	}
+	return fmt.Sprintf("SELECT %s FROM %s%s%s%s", cs, table, where, order, ls)
+}
 func (s *Sql) CreateTable(buf *bytes.Buffer, name string, columns ...string) {
 	fmt.Fprintf(buf,
 		"CREATE TABLE IF NOT EXISTS %s(%s)",
@@ -202,7 +287,7 @@ func (s *Sql) CreateDatabase(buf *bytes.Buffer, name string) {
 	switch s.driver {
 	case "postgres":
 		fmt.Fprintf(buf, "CREATE DATABASE %s ENCODING 'utf-8'", name)
-	case "mysql":
+	case "mySql":
 		fmt.Fprintf(buf, "CREATE DATABASE IF NOT EXISTS %s DEFAULT CHARACTER SET utf8", name)
 	default:
 		logger.Warning("Not support create database on " + s.driver)
@@ -212,10 +297,19 @@ func (s *Sql) CreateDatabase(buf *bytes.Buffer, name string) {
 
 func (s *Sql) DropDatabase(buf *bytes.Buffer, name string) {
 	switch s.driver {
-	case "postgres", "mysql":
+	case "postgres", "mySql":
 		fmt.Fprintf(buf, "DROP DATABASE IF EXISTS %s", name)
 	default:
 		logger.Warning("Not support drop database on " + s.driver)
 	}
 
 }
+
+func (s *Sql) UseDriver(driver string) {
+	s.driver = driver
+}
+
+//--------------------database--------------------------------------------------
+
+//------------------------------------------------------------------------------
+var SQL = Sql{}

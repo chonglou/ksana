@@ -13,11 +13,11 @@ func OpenLogger(tag string) *syslog.Writer {
 	} else {
 		level = syslog.LOG_DEBUG
 	}
-	logger, err := syslog.New(level, tag)
+	l, err := syslog.New(level, tag)
 	if err != nil {
 		log.Fatalf("error on open syslog: %v", err)
 	}
-	return logger
+	return l
 }
 
 var logger = OpenLogger("ksana")
