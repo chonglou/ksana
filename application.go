@@ -23,7 +23,7 @@ type Application interface {
 
 func New() (Application, error) {
 	actions := []string{"server", "migrate", "rollback", "routes"}
-	cfg := flag.String("c", "context.xml", "configuration file name")
+	cfg := flag.String("c", "config.json", "configuration file name")
 	act := flag.String("r", "server", "running: "+strings.Join(actions, " | "))
 	flag.Parse()
 

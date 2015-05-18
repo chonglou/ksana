@@ -14,7 +14,7 @@ func Taaa(hf Handler) string {
 	//return fmt.Sprintf("%v", reflect.TypeOf(hf))
 }
 
-func Tbbb(req *Request, res *Response) error {
+func Tbbb(req *Request, res *Response, ctx *Context) error {
 	return nil
 }
 

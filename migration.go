@@ -9,7 +9,7 @@ type Migration interface {
 type migration struct {
 }
 
-func (m *migration) Add( b Bean) error{
+func (m *migration) Add(b Bean) error {
 	return nil
 }
 

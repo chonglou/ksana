@@ -1,0 +1,20 @@
+{
+	"name": "",
+	"port": 8080,
+	"env": "development",
+	"key": "gGJAIJULpOCgBMCcQ4M8ErkG27KPg6eY5TqeVWC6BWQ=",
+	"password": "0ZsolQQWwKt8LUj5sSP5TG/anOFZ5Avh6zyq01QAlzg=",
+	"session": {
+		"name": "_ksana",
+		"secret": "D8HFod5Yb4/nOMtQT5qCGrzAPcOuiWEQG6Ks5q2rfFE="
+	},
+	"redis": {
+		"url": "localhost:6379",
+		"db": 0,
+		"pool": 12
+	},
+	"database": {
+		"driver": "postgres",
+		"url": "postgres://postgres@localhost/ksana?sslmode=disable"
+	}
+}
