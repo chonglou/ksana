@@ -8,14 +8,23 @@ import (
 	"time"
 )
 
-type TestBean struct {
+type TestBean1 struct {
 	Bean
-	Name string `sql:"size:155;unique:true;long:true;null:false;index:true;default:aaa"`
 
-	Uid string `sql:"type:uuid"`
-	Id  int    `sql:"type:serial"`
+	Name1 string `sql:"size=155;unique=true;long=true;null=false;index=Created,Updated;default=aaa"`
+	Name2 string `sql:"size=155;unique=true;fix=true;null=false;index=Created,Updated;default=aaa"`
 
-	Time time.Time
+	Uid     string    `sql:"type=uuid"`
+	Time    time.Time `sql:"type=time"`
+	Date    time.Time `sql:"type=date"`
+	Created time.Time `sql:"type=created"`
+	Updated time.Time `sql:"type=updated"`
+}
+
+type TestBean2 struct {
+	Bean
+
+	Id int `sql:"type=serial"`
 
 	Int    int
 	Int8   int8
@@ -24,7 +33,7 @@ type TestBean struct {
 	Uint   uint
 	Rune   rune
 	Byte   byte
-	String string
+	String string `sql:"size=255"`
 	Enable bool
 	Float  float32
 	Double float64
@@ -36,9 +45,12 @@ func TestMigration(t *testing.T) {
 	var m Migration
 	m = &migration{path: "/tmp/migrate"}
 
-	err := m.Add(TestBean{})
-	if err != nil {
-		t.Errorf("Error on add bean: %v", err)
+	for _, b := range []Bean{TestBean1{}, TestBean2{}} {
+		err := m.Add(b)
+		if err != nil {
+			t.Errorf("Error on add bean: %v", err)
+		}
+
 	}
 
 }

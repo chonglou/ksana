@@ -35,29 +35,108 @@ func (m *migration) column(
 	create, index *bytes.Buffer,
 	tags map[string]string) {
 
-	switch tags["type"] {
-	case "serial":
-	case "uuid":
-	case "created":
+	name := tags["name"]
+	if tags["index"] != "" {
+		unique := ""
+		if tags["unique"] == "true" {
+			unique = " UNIQUE"
+		}
 
-	case "date":
-	case "time":
-	case "datetime":
+		idx1 := strings.Split(tags["index"], ",")
+		idx2 := make([]string, len(idx1))
+		for k, v := range idx1 {
+			idx2[k] = m.en(v)
+		}
 
-	case "int":
-	case "int8":
-	case "int32":
-	case "int64":
-	case "uint":
-	case "uint8": //byte
-	case "string": // text char varchar byte bolb
-	case "bool": //bool
-	case "float32": //float
-	case "float64": //double
-	default:
-		logger.Debug("Ingnore")
+		fmt.Fprintf(
+			index, "CREATE%s INDEX %s_%s_idx ON %s (%s);",
+			unique, table, name, table, strings.Join(idx2, ","))
 	}
 
+	def, null, fix, long, size := "", "", tags["fix"], tags["long"], tags["size"]
+	if tags["default"] != "" {
+		def = tags["default"]
+	}
+	if tags["null"] == "false" {
+		null = " NOT NULL"
+	}
+
+	ty := tags["type"]
+	switch ty {
+	case "serial":
+		fmt.Fprintf(create, "%s SERIAL", name)
+		return
+	case "uuid":
+		fmt.Fprintf(create, "%s UUID NOT NULL PRIMARY KEY DEFAULT UUID_GENERATE_V4()", name)
+		return
+	case "created":
+		fmt.Fprintf(create, "%s TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP", name)
+		return
+	case "updated":
+		fmt.Fprintf(create, "%s TIMESTAMP", name)
+		return
+	case "date":
+		ty = "DATE"
+	case "time":
+		ty = "TIME"
+	case "datetime":
+		ty = "TIMESTAMP"
+	case "int":
+		ty = "INTEGER"
+	case "int8":
+		ty = "SMALLINT"
+	case "int32":
+		ty = "INTEGER"
+	case "int64":
+		ty = "BIGINT"
+	case "uint":
+		ty = "INTEGER"
+	case "string": // text char varchar byte bolb
+		if def != "" {
+			def = "'" + def + "'"
+		}
+		switch {
+		case long == "true":
+			ty = "TEXT"
+		case fix == "true":
+			ty = "CHAR(" + size + ")"
+		default:
+			ty = "VARCHAR(" + size + ")"
+		}
+
+	case "bool": //bool
+		ty = "BOOLEAN"
+		if def != "" {
+			if def == "true" {
+				def = "TRUE"
+			} else {
+				def = "FALSE"
+			}
+		}
+	case "float32": //float
+		ty = "REAL"
+	case "float64": //double
+		ty = "DOUBLE PRECISION"
+	case "uint8": //byte
+		ty = "BIT(1)"
+	case "byte":
+		switch {
+		case long == "true":
+			ty = "BYTEA"
+		case fix == "true":
+			ty = "BIT(" + size + ")"
+		default:
+			ty = "BIT VARYING(" + size + ")"
+		}
+	default:
+		logger.Debug("Ingnore")
+		return
+	}
+
+	if def != "" {
+		def = " DEFAULT " + def
+	}
+	fmt.Fprintf(create, "%s %s%s%s", name, ty, null, def)
 }
 
 func (m *migration) write(
@@ -119,16 +198,16 @@ func (m *migration) Add(b Bean) error {
 	fmt.Fprintf(&create, "CREATE TABLE IF NOT EXISTS %s", table)
 	fmt.Fprintf(&drop, "DROP TABLE IF EXISTS %s;", table)
 
-	for i := 0; i < bt.NumField(); i++ {
+	for i := 1; i < bt.NumField(); i++ {
 		f := bt.Field(i)
 		tag := f.Tag.Get("sql")
 		tags := make(map[string]string, 0)
 		tags["type"] = f.Type.Name()
-		tags["name"] = f.Name
+		tags["name"] = m.en(f.Name)
 
 		if tag != "" {
 			for _, it := range strings.Split(tag, ";") {
-				ss := strings.Split(it, ":")
+				ss := strings.Split(it, "=")
 				if len(ss) != 2 {
 					return errors.New("Error struct tag format: " + it)
 				}
@@ -138,7 +217,7 @@ func (m *migration) Add(b Bean) error {
 
 		logger.Debug(fmt.Sprintf("Find field: %v", tags))
 
-		if i == 0 {
+		if i == 1 {
 			create.Write([]byte("("))
 		} else {
 			create.Write([]byte(", "))
