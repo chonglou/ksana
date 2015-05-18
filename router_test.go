@@ -3,29 +3,19 @@ package ksana
 import (
 	//"fmt"
 	"log"
-	"net/http"
 	"reflect"
 	"regexp"
 	"runtime"
 	"testing"
 )
 
-func TestRouter(t *testing.T) {
-	var rt Route
-	rt = &route{}
-	var rtr Router
-	rtr = &router{}
-
-	log.Printf("ROUTE: %s %v", rt.Method(), rtr)
-}
-
 func Taaa(hf Handler) string {
 	return runtime.FuncForPC(reflect.ValueOf(hf).Pointer()).Name()
 	//return fmt.Sprintf("%v", reflect.TypeOf(hf))
 }
 
-func Tbbb(wrt http.ResponseWriter, req *http.Request) {
-
+func Tbbb(req *Request, res *Response) error {
+	return nil
 }
 
 func TestRegexpMux(t *testing.T) {

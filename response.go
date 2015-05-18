@@ -9,11 +9,11 @@ import (
 	"path"
 )
 
-type Render struct {
+type Response struct {
 	writer http.ResponseWriter
 }
 
-func (r *Render) Json(data interface{}) {
+func (r *Response) Json(data interface{}) {
 	r.writer.Header().Set("Content-Type", "application/json")
 	j, e := json.Marshal(data)
 	if e == nil {
@@ -24,12 +24,12 @@ func (r *Render) Json(data interface{}) {
 
 }
 
-func (r *Render) File(req *http.Request, file string) {
+func (r *Response) File(req *http.Request, file string) {
 	path.Join("public", file)
 	http.ServeFile(r.writer, req, file)
 }
 
-func (r *Render) Xml(data interface{}) {
+func (r *Response) Xml(data interface{}) {
 	r.writer.Header().Set("Content-Type", "application/xml")
 
 	x, e := xml.MarshalIndent(data, "", "  ")
@@ -40,11 +40,11 @@ func (r *Render) Xml(data interface{}) {
 	}
 }
 
-func (r *Render) Text(data []byte) {
+func (r *Response) Text(data []byte) {
 	r.writer.Write(data)
 }
 
-func (r *Render) HtmlT(file string, data interface{}) {
+func (r *Response) HtmlT(file string, data interface{}) {
 	t, e := template.ParseFiles(path.Join("app/views", file))
 	if e != nil {
 		r.Error(e)
@@ -55,7 +55,7 @@ func (r *Render) HtmlT(file string, data interface{}) {
 	}
 }
 
-func (r *Render) TextT(buf *bytes.Buffer, tpl string, data interface{}) error {
+func (r *Response) TextT(buf *bytes.Buffer, tpl string, data interface{}) error {
 	t, err := template.ParseFiles(path.Join("app/views", tpl))
 	if err != nil {
 		return err
@@ -66,6 +66,6 @@ func (r *Render) TextT(buf *bytes.Buffer, tpl string, data interface{}) error {
 	return nil
 }
 
-func (r *Render) Error(e error) {
+func (r *Response) Error(e error) {
 	http.Error(r.writer, e.Error(), http.StatusInternalServerError)
 }

@@ -6,14 +6,13 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"reflect"
 	"regexp"
 	"runtime"
 )
 
-type Params map[string]string
-
-type Handler interface{}
+type Handler func(*Request, *Response) error
 
 type Controller struct {
 	Index   []Handler
@@ -26,11 +25,9 @@ type Controller struct {
 }
 
 type Route interface {
+	Regex() *regexp.Regexp
 	Method() string
 	Pattern() string
-	Match(method string, url string) bool
-	Parse(url string, params Params)
-
 	Status(buf *bytes.Buffer)
 	Call(func(i int, h Handler) error) error
 }
@@ -45,22 +42,12 @@ func (r *route) Method() string {
 	return r.method
 }
 
+func (r *route) Regex() *regexp.Regexp {
+	return r.regex
+}
+
 func (r *route) Pattern() string {
 	return r.regex.String()
-}
-
-func (r *route) Match(mtd string, url string) bool {
-	return mtd == r.method && r.regex.MatchString(url)
-}
-
-func (r *route) Parse(url string, params Params) {
-	names := r.regex.SubexpNames()
-	values := r.regex.FindStringSubmatch(url)
-	for i, n := range names {
-		if i > 0 {
-			params[n] = values[i]
-		}
-	}
 }
 
 func (r *route) Status(buf *bytes.Buffer) {
@@ -166,27 +153,27 @@ func (r *router) Status(buf *bytes.Buffer) {
 	}
 }
 
-func (r *router) ServeHTTP(wrt http.ResponseWriter, req *http.Request) {
-	url, method := req.URL.Path, req.Method
+func (r *router) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
+	req := Request{request: request, params: url.Values{}}
+	res := Response{writer: writer}
 
-	logger.Info(fmt.Sprintf("%s %s", method, url))
+	logger.Info(fmt.Sprintf("%s %s", req.Method(), req.Path()))
 
 	for it := r.routes.Front(); it != nil; it = it.Next() {
 		rt := it.Value.(Route)
-		if rt.Match(method, url) {
-			//r.ctx.Logger.Debug(fmt.Sprintf("MATCH WITH %s", rt.Pattern()))
+		if req.Match(rt) {
+			logger.Debug("MATCH WITH " + rt.Pattern())
+			req.Parse(rt)
 			err := rt.Call(func(i int, h Handler) error {
-				//todo 处理
-				logger.Debug(fmt.Sprintf("%v %v", i, h))
-				return nil
+				logger.Debug(fmt.Sprintf("CALL %v %v", i, h))
+				return h(&req, &res)
 			})
 
 			if err != nil {
-				http.Error(wrt, err.Error(), http.StatusInternalServerError)
+				http.Error(writer, err.Error(), http.StatusInternalServerError)
 			}
-
 			return
 		}
 	}
-	http.NotFound(wrt, req)
+	http.NotFound(writer, request)
 }
