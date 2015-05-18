@@ -1,23 +1,19 @@
 package ksana
 
 import (
-	"log"
 	"log/syslog"
 	"os"
 )
 
-func OpenLogger(tag string) *syslog.Writer {
+func openLogger(env string, tag string) (*syslog.Writer, error) {
 	var level syslog.Priority
-	if os.Getenv("KSANA_ENVIRONMENT") == "production" {
+	if env == "production" {
 		level = syslog.LOG_INFO
 	} else {
 		level = syslog.LOG_DEBUG
 	}
-	l, err := syslog.New(level, tag)
-	if err != nil {
-		log.Fatalf("error on open syslog: %v", err)
-	}
-	return l
+	return syslog.New(level, tag)
+
 }
 
-var logger = OpenLogger("ksana")
+var logger, _ = openLogger(os.Getenv("KSANA_ENVIRONMENT"), "ksana")
