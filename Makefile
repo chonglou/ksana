@@ -1,6 +1,6 @@
 
 test:
-	go test 
+	go test
 
 
 install:
@@ -8,13 +8,11 @@ install:
 
 
 
-clean:
-	
+clean:	
+	-rm -r /tmp/migrate/*.sql
+
 
 
 
 fmt:
 	gofmt -w *.go examples/*.go #auth/*.go
-
-
-
