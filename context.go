@@ -8,8 +8,16 @@ import (
 )
 
 type Context struct {
-	Config *configuration
-	Beans  map[string]interface{}
+	config *configuration
+	beans  map[string]interface{}
+}
+
+func (c *Context) Put(key string, val interface{}) {
+	c.beans[key] = val
+}
+
+func (c *Context) Get(key string) interface{} {
+	return c.beans[key]
 }
 
 func (c *Context) openDatabase(driver string, url string) error {
@@ -23,7 +31,7 @@ func (c *Context) openDatabase(driver string, url string) error {
 	if err != nil {
 		return err
 	}
-	c.Beans["db"] = db
+	c.beans["db"] = db
 	logger.Info("Database setup successfull")
 	return nil
 }
@@ -47,37 +55,39 @@ func (c *Context) openRedis(url string, size int, db int) error {
 	}
 	p.Put(cl)
 
-	c.Beans["redis"] = p
+	c.beans["redis"] = p
 	logger.Info("Redis setup successfull")
 	return nil
 }
 
 func (c *Context) Load(file string) error {
-	err := readConfig(c.Config, file)
+	logger.Info("Booting Ksana("+VERSION+")")
+
+	err := readConfig(c.config, file)
 	if err != nil {
 		return err
 	}
 	var log *syslog.Writer
-	log, err = openLogger(c.Config.Env, c.Config.Name)
+	log, err = openLogger(c.config.Env, c.config.Name)
 	if err != nil {
 		return err
 	}
-	c.Beans["logger"] = log
+	c.beans["logger"] = log
 
 	if err = c.openDatabase(
-		c.Config.Database.Driver,
-		c.Config.Database.Url); err != nil {
+		c.config.Database.Driver,
+		c.config.Database.Url); err != nil {
 		return err
 	}
 	if err = c.openRedis(
-		c.Config.Redis.Url,
-		c.Config.Redis.Pool,
-		c.Config.Redis.Db); err != nil {
+		c.config.Redis.Url,
+		c.config.Redis.Pool,
+		c.config.Redis.Db); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-var ctx = Context{Config: &configuration{},
-	Beans: make(map[string]interface{}, 0)}
+var ctx = Context{config: &configuration{},
+	beans: make(map[string]interface{}, 0)}

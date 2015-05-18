@@ -1,8 +1,8 @@
 package ksana
 
 import (
-	// "database/sql"
-	// _ "github.com/lib/pq"
+	"database/sql"
+	_ "github.com/lib/pq"
 	"log"
 	"testing"
 	"time"
@@ -39,18 +39,32 @@ type TestBean2 struct {
 	Double float64
 }
 
-func TestMigration(t *testing.T) {
-	log.Println("============== TEST MIGRATION ======================")
+func TestModel(t *testing.T) {
+	log.Println("============== TEST MODEL ======================")
 
-	var m Migration
-	m = &migration{path: "/tmp/migrate"}
+	db, err := sql.Open("postgres", "postgres://postgres@localhost/ksana_t?sslmode=disable")
+
+	if err != nil {
+		t.Errorf("Open database: %v", err)
+	}
+	defer db.Close()
+	var m Model
+	m = &model{path: "/tmp/migrate", db: db}
 
 	for _, b := range []Bean{TestBean1{}, TestBean2{}} {
-		err := m.Add(b)
+		err := m.Register(b)
 		if err != nil {
 			t.Errorf("Error on add bean: %v", err)
 		}
 
 	}
 
+	err = m.Migrate()
+	if err != nil {
+		t.Errorf("Error on add bean: %v", err)
+	}
+	err = m.Rollback()
+	if err != nil {
+		t.Errorf("Error on add bean: %v", err)
+	}
 }

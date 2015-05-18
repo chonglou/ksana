@@ -3,6 +3,7 @@ package ksana
 import (
 	"bytes"
 	"container/list"
+	"database/sql"
 	"errors"
 	"flag"
 	"fmt"
@@ -17,7 +18,7 @@ const VERSION = "v20150510"
 type Application interface {
 	Start() error
 	Router() Router
-	Migration() Migration
+	Model() Model
 	Mount(path string, engine Engine)
 }
 
@@ -36,12 +37,13 @@ func New() (Application, error) {
 	}
 
 	for _, a := range actions {
+
 		if a == *act {
 			app = &application{
-				config:    *cfg,
-				action:    *act,
-				router:    &router{routes: list.New(), templates: "app/views"},
-				migration: &migration{path: "db/migrate/"},
+				config: *cfg,
+				action: *act,
+				router: &router{routes: list.New(), templates: "app/views"},
+				model:  &model{path: "db/migrate", db: ctx.Get("db").(*sql.DB)},
 			}
 			break
 		}
@@ -60,16 +62,16 @@ type application struct {
 	config string
 	action string
 
-	router    Router
-	migration Migration
+	router Router
+	model  Model
 }
 
 func (app *application) Mount(p string, e Engine) {
 	e.Router(p, app.Router())
 }
 
-func (app *application) Migration() Migration {
-	return app.migration
+func (app *application) Model() Model {
+	return app.model
 }
 
 func (app *application) Router() Router {
@@ -83,9 +85,9 @@ func (app *application) Start() error {
 	case "server":
 		err = app.server()
 	case "migrate":
-		err = app.migration.Migrate()
+		err = app.model.Migrate()
 	case "rollback":
-		err = app.migration.Rollback()
+		err = app.model.Rollback()
 	case "routes":
 		app.routes()
 	default:
@@ -104,10 +106,10 @@ func (app *application) server() error {
 	log.Printf("=> Booting Ksana(%s)", VERSION)
 	log.Printf(
 		"=> Application starting in %s on http://0.0.0.0:%v",
-		ctx.Config.Env,
-		ctx.Config.Port)
+		ctx.config.Env,
+		ctx.config.Port)
 	log.Printf("=> Run `cat %s` for more startup options", app.config)
 	log.Println("=> Ctrl-C to shutdown server")
-
-	return http.ListenAndServe(fmt.Sprintf(":%d", ctx.Config.Port), app.router)
+	
+	return http.ListenAndServe(fmt.Sprintf(":%d", ctx.config.Port), app.router)
 }

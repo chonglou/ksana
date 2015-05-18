@@ -2,35 +2,46 @@ package ksana
 
 import (
 	"bytes"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"log"
+	"os"
 	"reflect"
 	"regexp"
 	"strings"
 	"time"
 )
 
-var re_sql_file = regexp.MustCompile("(?P<date>[\\d]{14})(?P<table>[_a-z]+).sql$")
+const migrations_table_name = "schema_migrations"
+
+var re_sql_file = regexp.MustCompile("(?P<date>[\\d]{14})(?P<table>[_a-z0-9]+).sql$")
+
+type migration struct {
+	Up   string `json:"up"`
+	Down string `json:"down"`
+}
 
 type Bean interface{}
 
-type Migration interface {
-	Add(Bean) error
+type Model interface {
+	Register(Bean) error
 	Migrate() error
 	Rollback() error
 }
 
-type migration struct {
+type model struct {
+	db   *sql.DB
 	path string
 }
 
-func (m *migration) en(s string) string {
+func (m *model) en(s string) string {
 	return "_" + strings.ToLower(s)
 }
 
-func (m *migration) column(
+func (m *model) column(
 	table string,
 	create, index *bytes.Buffer,
 	tags map[string]string) {
@@ -139,29 +150,25 @@ func (m *migration) column(
 	fmt.Fprintf(create, "%s %s%s%s", name, ty, null, def)
 }
 
-func (m *migration) write(
+func (m *model) write(
 	table string,
 	create, index, drop *bytes.Buffer) error {
 
 	fn := time.Now().Format("20060102150405") + table + ".sql"
-	logger.Info("Generate migration file: " + fn)
+	logger.Info("Generate model file: " + fn)
 
-	sq := make(map[string]string, 0)
-	sq["up"] = create.String() + index.String()
-	sq["down"] = drop.String()
-
-	cj, err := json.MarshalIndent(sq, "", "\t")
+	cj, err := json.MarshalIndent(
+		&migration{
+			Up:   create.String() + index.String(),
+			Down: drop.String()},
+		"", "\t")
 	if err != nil {
 		return err
 	}
 	return ioutil.WriteFile(m.path+"/"+fn, cj, 0600)
 }
 
-func (m *migration) check(b Bean) (string, error) {
-
-	bt := reflect.TypeOf(b)
-	logger.Info("Load bean " + bt.Name())
-	table := m.en(strings.Replace(bt.String(), ".", "_", -1))
+func (m *model) check(table string) (string, error) {
 
 	files, err := ioutil.ReadDir(m.path)
 	if err != nil {
@@ -170,27 +177,32 @@ func (m *migration) check(b Bean) (string, error) {
 
 	for _, f := range files {
 		fn := f.Name()
-		logger.Debug("Find sql file: " + fn)
 		if !re_sql_file.MatchString(fn) {
-			logger.Warning("Error migration file: " + fn)
 			continue
 		}
-		logger.Debug(re_sql_file.FindStringSubmatch(fn)[2])
 
 		if table == re_sql_file.FindStringSubmatch(fn)[2] {
-			return "", errors.New("Find migration file: " + fn)
+			return fn, nil
 		}
 	}
-	return table, nil
+	return "", nil
 }
 
-func (m *migration) Add(b Bean) error {
-	table, err := m.check(b)
+func (m *model) Register(b Bean) error {
+
+	bt := reflect.TypeOf(b)
+	logger.Info("Load bean " + bt.Name())
+	table := m.en(strings.Replace(bt.String(), ".", "_", -1))
+
+	fn, err := m.check(table)
 	if err != nil {
 		return err
 	}
+	if fn != "" {
+		logger.Info("Find migration " + fn)
+		return nil
+	}
 
-	bt := reflect.TypeOf(b)
 	var create bytes.Buffer
 	var drop bytes.Buffer
 	var index bytes.Buffer
@@ -230,10 +242,117 @@ func (m *migration) Add(b Bean) error {
 	return m.write(table, &create, &index, &drop)
 }
 
-func (m *migration) Migrate() error {
+func (m *model) version() error {
+	var buf bytes.Buffer
+	for _, p := range []string{"uuid-ossp", "pgcrypto"} {
+		fmt.Fprintf(&buf, "CREATE EXTENSION IF NOT EXISTS \"%s\";", p)
+	}
+	fmt.Fprintf(
+		&buf,
+		"CREATE TABLE IF NOT EXISTS %s(id SERIAL, version VARCHAR(255) NOT NULL UNIQUE, created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP);",
+		migrations_table_name)
+
+	_, err := m.db.Exec(buf.String())
+	return err
+}
+
+func (m *model) read(mig *migration, file string) error {
+	f, e := os.Open(m.path + "/" + file)
+	if e != nil {
+		return e
+	}
+	defer f.Close()
+
+	return json.NewDecoder(f).Decode(mig)
+}
+
+func (m *model) Migrate() error {
+	err := m.version()
+	if err != nil {
+		return err
+	}
+
+	files, err := ioutil.ReadDir(m.path)
+	if err != nil {
+		return err
+	}
+
+	for _, f := range files {
+
+		fn := f.Name()
+		var rs *sql.Rows
+
+		rs, err = m.db.Query(fmt.Sprintf(
+			"SELECT id FROM %s WHERE version = $1", migrations_table_name), fn)
+		if err != nil {
+			return err
+		}
+		defer rs.Close()
+
+		if rs.Next() {
+			log.Printf("Has %s", fn)
+		} else {
+			mig := migration{}
+			err = m.read(&mig, fn)
+			if err != nil {
+				return err
+			}
+			log.Printf("Migrate version %s!\n%s", fn, mig.Up)
+			_, err = m.db.Exec(mig.Up)
+			if err != nil {
+				return err
+			}
+			_, err = m.db.Exec(fmt.Sprintf(
+				"INSERT INTO %s(version) VALUES($1)", migrations_table_name), fn)
+			if err != nil {
+				return err
+			}
+
+		}
+	}
 	return nil
 }
 
-func (m *migration) Rollback() error {
+func (m *model) Rollback() error {
+	err := m.version()
+	if err != nil {
+		return err
+	}
+
+	var rs *sql.Rows
+	rs, err = m.db.Query(fmt.Sprintf(
+		"SELECT id, version FROM %s ORDER BY id DESC LIMIT 1", migrations_table_name))
+	if err != nil {
+		return err
+	}
+	defer rs.Close()
+	if rs.Next() {
+		var id int
+		var ver string
+		err = rs.Scan(&id, &ver)
+		if err != nil {
+			return nil
+		}
+
+		mig := migration{}
+		err = m.read(&mig, ver)
+		if err != nil {
+			return err
+		}
+		log.Printf("Rollback version %s\n%s", ver, mig.Down)
+		_, err = m.db.Exec(mig.Down)
+		if err != nil {
+			return err
+		}
+		_, err = m.db.Exec(fmt.Sprintf(
+			"DELETE FROM %s WHERE id=$1", migrations_table_name), id)
+		if err != nil {
+			return err
+		}
+
+	} else {
+		log.Println("Empty database!")
+	}
+
 	return nil
 }

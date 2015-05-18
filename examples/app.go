@@ -8,6 +8,19 @@ import (
 	"time"
 )
 
+type User1 struct {
+	ksana.Model
+	Id   int `sql:"type:id"`
+	Name string
+}
+
+type Log1 struct {
+	ksana.Model
+	Id      string `sql:"type:uuid"`
+	Message string
+	Created time.Time `sql:"type:created"`
+}
+
 func sayHello(req *ksana.Request, res *ksana.Response, ctx *ksana.Context) error {
 	val := make(map[string]interface{}, 0)
 	val["ok"] = true
@@ -58,6 +71,10 @@ func main() {
 			Destroy: fns})
 
 	//-------------------DATABASE----------------------------------------
+
+	mod := app.Model()
+	mod.Register(User1{})
+	mod.Register(Log1{})
 
 	//------------------Engine-----------------------------------
 	// ae := auth.AuthEngine{}
