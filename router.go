@@ -98,7 +98,6 @@ type Router interface {
 }
 
 type router struct {
-	ctx    *Context
 	routes *list.List
 }
 
@@ -145,7 +144,7 @@ func (r *router) Resources(name string, ctl Controller) {
 
 func (r *router) add(mtd, pat string, hs []Handler) {
 
-	r.ctx.Logger.Debug("ROUTE ADD - " + mtd + " - " + pat)
+	logger.Debug("ROUTE ADD - " + mtd + " - " + pat)
 	for _, h := range hs {
 		// r.ctx.Logger.Debug(fmt.Sprintf(
 		// 	"%s %s %v, %v",
@@ -170,7 +169,7 @@ func (r *router) Status(buf *bytes.Buffer) {
 func (r *router) ServeHTTP(wrt http.ResponseWriter, req *http.Request) {
 	url, method := req.URL.Path, req.Method
 
-	r.ctx.Logger.Info(fmt.Sprintf("%s %s", method, url))
+	logger.Info(fmt.Sprintf("%s %s", method, url))
 
 	for it := r.routes.Front(); it != nil; it = it.Next() {
 		rt := it.Value.(Route)
@@ -178,7 +177,7 @@ func (r *router) ServeHTTP(wrt http.ResponseWriter, req *http.Request) {
 			//r.ctx.Logger.Debug(fmt.Sprintf("MATCH WITH %s", rt.Pattern()))
 			err := rt.Call(func(i int, h Handler) error {
 				//todo 处理
-				r.ctx.Logger.Debug(fmt.Sprintf("%v %v", i, h))
+				logger.Debug(fmt.Sprintf("%v %v", i, h))
 				return nil
 			})
 

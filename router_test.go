@@ -24,7 +24,7 @@ func Taaa(hf Handler) string {
 	//return fmt.Sprintf("%v", reflect.TypeOf(hf))
 }
 
-func Tbbb(wrt http.ResponseWriter, req *http.Request, ctx *Context) {
+func Tbbb(wrt http.ResponseWriter, req *http.Request) {
 
 }
 
