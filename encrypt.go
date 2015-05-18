@@ -7,7 +7,6 @@ import (
 	"crypto/md5"
 	"crypto/sha512"
 	"encoding/base64"
-	"log"
 )
 
 func Md5(src []byte) [16]byte {
@@ -41,12 +40,13 @@ type Aes struct {
 }
 
 //16、24或者32位的[]byte，分别对应AES-128, AES-192或AES-256算法
-func (a *Aes) Init(key []byte) {
+func (a *Aes) Init(key []byte) error {
 	c, e := aes.NewCipher(key)
 	if e != nil {
-		log.Fatalf("Error on new aes cipher: %v", e)
+		return e
 	}
 	a.cip = c
+	return nil
 }
 
 func (a *Aes) Encrypt(src []byte) ([]byte, []byte) {
