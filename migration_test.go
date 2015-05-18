@@ -34,7 +34,7 @@ func TestMigration(t *testing.T) {
 	log.Println("============== TEST MIGRATION ======================")
 
 	var m Migration
-	m = &migration{path: "tmp/migrate"}
+	m = &migration{path: "/tmp/migrate"}
 
 	err := m.Add(TestBean{})
 	if err != nil {

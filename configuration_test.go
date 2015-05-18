@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-const config_file = "tmp/config.json"
+const config_file = "/tmp/config.json"
 
 func TestConfiguration(t *testing.T) {
 	log.Println("========== TEST CONFIGURATION ==========")
