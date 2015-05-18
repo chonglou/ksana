@@ -5,10 +5,10 @@ import (
 	"testing"
 )
 
+const config_file = "tmp/config.json"
+
 func TestConfiguration(t *testing.T) {
 	log.Println("========== TEST CONFIGURATION ==========")
-
-	fn := "tmp/config.json"
 
 	cfg1 := configuration{
 		Port:     8080,
@@ -22,13 +22,13 @@ func TestConfiguration(t *testing.T) {
 			Url:    "postgres://postgres@localhost/ksana?sslmode=disable"},
 	}
 
-	err := writeConfig(&cfg1, fn)
+	err := writeConfig(&cfg1, config_file)
 	if err != nil {
 		t.Errorf("Write config error: %v", err)
 	}
 
 	cfg2 := configuration{}
-	err = readConfig(&cfg2, fn)
+	err = readConfig(&cfg2, config_file)
 	if err != nil {
 		t.Errorf("Read config error: %v", err)
 	}

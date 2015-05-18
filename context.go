@@ -79,4 +79,5 @@ func (c *Context) Load(file string) error {
 	return nil
 }
 
-var ctx = Context{Config: &configuration{}, Beans: make(map[string]interface{}, 0)}
+var ctx = Context{Config: &configuration{},
+	Beans: make(map[string]interface{}, 0)}

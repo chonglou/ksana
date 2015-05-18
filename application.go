@@ -6,12 +6,10 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	//"io/ioutil"
 	"log"
 	"net/http"
 	"os"
-	// "os/signal"
-	//"time"
+	"strings"
 )
 
 const VERSION = "v20150510"
@@ -24,30 +22,26 @@ type Application interface {
 }
 
 func New() (Application, error) {
-	cfg := flag.String("config", "context.xml", "configuration filename")
-	act := flag.String("run", "server", "running: server | migrate | rollbock | routes")
+	actions := []string{"server", "migrate", "rollback", "routes"}
+	cfg := flag.String("c", "context.xml", "configuration file name")
+	act := flag.String("r", "server", "running: "+strings.Join(actions, " | "))
 	flag.Parse()
 
 	var err error
 	var app Application
 
-	for _, a := range []string{"server", "migrate", "routes", "rollback"} {
-		if a == *act {
-			ctx := Context{}
-			err = ctx.load(*cfg)
-			if err == nil {
-				app = &application{
-					config: *cfg,
-					action: *act,
+	err = ctx.Load(*cfg)
+	if err != nil {
+		return nil, err
+	}
 
-					ctx: &ctx,
-					router: &router{
-						routes: list.New(),
-						ctx:    &ctx},
-					migration: &migration{
-						db:    ctx.Db,
-						items: list.New()},
-				}
+	for _, a := range actions {
+		if a == *act {
+			app = &application{
+				config:    *cfg,
+				action:    *act,
+				router:    &router{routes: list.New()},
+				migration: &migration{},
 			}
 			break
 		}
@@ -63,15 +57,14 @@ func New() (Application, error) {
 }
 
 type application struct {
-	config    string
-	action    string
-	ctx       *Context
+	config string
+	action string
+
 	router    Router
 	migration Migration
 }
 
 func (app *application) Mount(p string, e Engine) {
-	e.Migration(app.Migration())
 	e.Router(p, app.Router())
 }
 
@@ -84,7 +77,6 @@ func (app *application) Router() Router {
 }
 
 func (app *application) Start() error {
-
 	var err error
 
 	switch app.action {
@@ -112,10 +104,10 @@ func (app *application) server() error {
 	log.Printf("=> Booting Ksana(%s)", VERSION)
 	log.Printf(
 		"=> Application starting in %s on http://0.0.0.0:%v",
-		app.ctx.Mode,
-		app.ctx.Port)
+		ctx.Config.Env,
+		ctx.Config.Port)
 	log.Printf("=> Run `cat %s` for more startup options", app.config)
 	log.Println("=> Ctrl-C to shutdown server")
 
-	return http.ListenAndServe(fmt.Sprintf(":%d", app.ctx.Port), app.router)
+	return http.ListenAndServe(fmt.Sprintf(":%d", ctx.Config.Port), app.router)
 }
