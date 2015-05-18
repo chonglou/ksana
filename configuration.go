@@ -2,8 +2,10 @@ package ksana
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"os"
+	"strconv"
 )
 
 type redisC struct {
@@ -13,8 +15,27 @@ type redisC struct {
 }
 
 type databaseC struct {
-	Driver string `json:"driver"`
-	Url    string `json:"url"`
+	Driver   string `json:"driver"`
+	Host     string `json:"host"`
+	Port     int    `json:"port"`
+	Name     string `json:"name"`
+	User     string `json:"user"`
+	Password string `json:"password"`
+	Ssl      string `json:"ssl"`
+}
+
+func (dc *databaseC) Url() string {
+	return fmt.Sprintf(
+		"%s://%s:%s@%s:%d/%s?sslmode=%s",
+		dc.Driver, dc.User, dc.Password, dc.Host, dc.Port, dc.Name, dc.Ssl)
+}
+
+func (dc *databaseC) Shell() (string, []string) {
+	return "psql", []string{
+		"-h", dc.Host,
+		"-p", strconv.Itoa(dc.Port),
+		"-d", dc.Name,
+		"-U", dc.User}
 }
 
 type sessionC struct {

@@ -18,8 +18,13 @@ func TestConfiguration(t *testing.T) {
 		Session:  sessionC{Name: "_ksana", Secret: RandomBytes(32)},
 		Redis:    redisC{Url: "localhost:6379", Db: 0, Pool: 12},
 		Database: databaseC{
-			Driver: "postgres",
-			Url:    "postgres://postgres@localhost/ksana?sslmode=disable"},
+			Driver:   "postgres",
+			Host:     "localhost",
+			Port:     5432,
+			Name:     "ksana",
+			User:     "postgres",
+			Password: "",
+			Ssl:      "disable"},
 	}
 
 	err := writeConfig(&cfg1, config_file)

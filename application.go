@@ -1,6 +1,6 @@
 package ksana
 
-import (	
+import (
 	"bytes"
 	"container/list"
 	"database/sql"
@@ -93,7 +93,8 @@ func (app *application) Start() error {
 	case "routes":
 		app.routes()
 	case "db":
-		err = app.shell("psql", "-U", "postgres")
+		cmd, args := ctx.config.Database.Shell()
+		err = app.shell(cmd, args...)
 	default:
 	}
 

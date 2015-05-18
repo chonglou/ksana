@@ -25,5 +25,6 @@ Ksana(A golang web framework)
     go run app.go -r rollback # database rollback
     go run app.go -r server   # run server
     go run app.go -r routes   # show http routes
+    go run app.go -r db       # connect to database
 
 

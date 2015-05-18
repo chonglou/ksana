@@ -76,7 +76,7 @@ func (c *Context) Load(file string) error {
 
 	if err = c.openDatabase(
 		c.config.Database.Driver,
-		c.config.Database.Url); err != nil {
+		c.config.Database.Url()); err != nil {
 		return err
 	}
 	if err = c.openRedis(
