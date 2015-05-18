@@ -106,6 +106,9 @@ func (m *model) column(
 		if def != "" {
 			def = "'" + def + "'"
 		}
+		if size == "" {
+			size = "255"
+		}
 		switch {
 		case long == "true":
 			ty = "TEXT"
@@ -196,6 +199,7 @@ func (m *model) Register(b Bean) error {
 
 	fn, err := m.check(table)
 	if err != nil {
+
 		return err
 	}
 	if fn != "" {
@@ -310,6 +314,7 @@ func (m *model) Migrate() error {
 
 		}
 	}
+	log.Printf("Done!!!")
 	return nil
 }
 
@@ -354,5 +359,6 @@ func (m *model) Rollback() error {
 		log.Println("Empty database!")
 	}
 
+	log.Println("Done!")
 	return nil
 }

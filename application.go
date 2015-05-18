@@ -110,6 +110,6 @@ func (app *application) server() error {
 		ctx.config.Port)
 	log.Printf("=> Run `cat %s` for more startup options", app.config)
 	log.Println("=> Ctrl-C to shutdown server")
-	
+
 	return http.ListenAndServe(fmt.Sprintf(":%d", ctx.config.Port), app.router)
 }

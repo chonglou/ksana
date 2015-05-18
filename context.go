@@ -61,7 +61,7 @@ func (c *Context) openRedis(url string, size int, db int) error {
 }
 
 func (c *Context) Load(file string) error {
-	logger.Info("Booting Ksana("+VERSION+")")
+	logger.Info("Booting Ksana(" + VERSION + ")")
 
 	err := readConfig(c.config, file)
 	if err != nil {

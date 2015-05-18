@@ -9,16 +9,16 @@ import (
 )
 
 type User1 struct {
-	ksana.Model
-	Id   int `sql:"type:id"`
-	Name string
+	ksana.Bean
+	Id   int    `sql:"type=serial"`
+	Name string `sql:"size=255;fix=true"`
 }
 
 type Log1 struct {
-	ksana.Model
-	Id      string `sql:"type:uuid"`
+	ksana.Bean
+	Id      string `sql:"type=uuid"`
 	Message string
-	Created time.Time `sql:"type:created"`
+	Created time.Time `sql:"type=created"`
 }
 
 func sayHello(req *ksana.Request, res *ksana.Response, ctx *ksana.Context) error {
@@ -73,8 +73,13 @@ func main() {
 	//-------------------DATABASE----------------------------------------
 
 	mod := app.Model()
-	mod.Register(User1{})
-	mod.Register(Log1{})
+	for _, b := range []ksana.Bean{User1{}, Log1{}} {
+		err := mod.Register(b)
+		if err != nil {
+			log.Fatalf("Error on register bean: %v", err)
+		}
+
+	}
 
 	//------------------Engine-----------------------------------
 	// ae := auth.AuthEngine{}
