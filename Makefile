@@ -14,7 +14,7 @@ clean:
 
 
 fmt:
-	gofmt -w *.go examples/*.go auth/*.go
+	gofmt -w *.go #examples/*.go auth/*.go
 
 
 
