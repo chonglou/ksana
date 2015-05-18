@@ -13,7 +13,6 @@ func TestConfiguration(t *testing.T) {
 	cfg1 := configuration{
 		Port:     8080,
 		Env:      "development",
-		Home:     "public",
 		Key:      RandomBytes(32),
 		Password: RandomBytes(32),
 		Session:  sessionC{Name: "_ksana", Secret: RandomBytes(32)},

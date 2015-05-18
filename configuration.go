@@ -26,7 +26,6 @@ type configuration struct {
 	Name     string    `json:"name"`
 	Port     int       `json:"port"`
 	Env      string    `json:"env"`
-	Home     string    `json:"home"`
 	Key      []byte    `json:"key"`
 	Password []byte    `json:"password"`
 	Session  sessionC  `json:"session"`
