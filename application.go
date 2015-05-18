@@ -1,6 +1,6 @@
 package ksana
 
-import (
+import (	
 	"bytes"
 	"container/list"
 	"database/sql"
@@ -10,7 +10,9 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/exec"
 	"strings"
+	"syscall"
 )
 
 const VERSION = "v20150510"
@@ -23,7 +25,7 @@ type Application interface {
 }
 
 func New() (Application, error) {
-	actions := []string{"server", "migrate", "rollback", "routes"}
+	actions := []string{"server", "migrate", "rollback", "routes", "db"}
 	cfg := flag.String("c", "config.json", "configuration file name")
 	act := flag.String("r", "server", "running: "+strings.Join(actions, " | "))
 	flag.Parse()
@@ -90,10 +92,20 @@ func (app *application) Start() error {
 		err = app.model.Rollback()
 	case "routes":
 		app.routes()
+	case "db":
+		err = app.shell("psql", "-U", "postgres")
 	default:
 	}
 
 	return err
+}
+
+func (app *application) shell(cmd string, args ...string) error {
+	bin, err := exec.LookPath(cmd)
+	if err != nil {
+		return err
+	}
+	return syscall.Exec(bin, append([]string{cmd}, args...), os.Environ())
 }
 
 func (app *application) routes() {
