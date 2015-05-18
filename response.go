@@ -10,6 +10,7 @@ import (
 )
 
 type Response struct {
+	path   string
 	writer http.ResponseWriter
 }
 
@@ -45,7 +46,7 @@ func (r *Response) Text(data []byte) {
 }
 
 func (r *Response) HtmlT(file string, data interface{}) {
-	t, e := template.ParseFiles(path.Join("app/views", file))
+	t, e := template.ParseFiles(path.Join(r.path, file))
 	if e != nil {
 		r.Error(e)
 		return
@@ -56,7 +57,7 @@ func (r *Response) HtmlT(file string, data interface{}) {
 }
 
 func (r *Response) TextT(buf *bytes.Buffer, tpl string, data interface{}) error {
-	t, err := template.ParseFiles(path.Join("app/views", tpl))
+	t, err := template.ParseFiles(path.Join(r.path, tpl))
 	if err != nil {
 		return err
 	}

@@ -40,8 +40,8 @@ func New() (Application, error) {
 			app = &application{
 				config:    *cfg,
 				action:    *act,
-				router:    &router{routes: list.New()},
-				migration: &migration{},
+				router:    &router{routes: list.New(), templates: "app/views"},
+				migration: &migration{path: "db/migrate/"},
 			}
 			break
 		}

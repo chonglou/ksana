@@ -30,7 +30,7 @@ func main() {
 	router.Any("/test$", func(req *ksana.Request, res *ksana.Response, ctx *ksana.Context) error {
 		res.Text([]byte("Hello,"))
 		return nil
-	},func(req *ksana.Request, res *ksana.Response, ctx *ksana.Context) error {
+	}, func(req *ksana.Request, res *ksana.Response, ctx *ksana.Context) error {
 		res.Text([]byte(" Ksans(HTTP ANY)!!!"))
 		return nil
 	})

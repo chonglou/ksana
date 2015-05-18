@@ -85,7 +85,8 @@ type Router interface {
 }
 
 type router struct {
-	routes *list.List
+	templates string
+	routes    *list.List
 }
 
 func (r *router) Get(pat string, hs ...Handler) {
@@ -155,7 +156,7 @@ func (r *router) Status(buf *bytes.Buffer) {
 
 func (r *router) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	req := Request{request: request, params: url.Values{}}
-	res := Response{writer: writer}
+	res := Response{writer: writer, path: r.templates}
 
 	logger.Info(fmt.Sprintf("%s %s", req.Method(), req.Path()))
 
