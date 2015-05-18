@@ -26,5 +26,6 @@ Ksana(A golang web framework)
     go run app.go -r server   # run server
     go run app.go -r routes   # show http routes
     go run app.go -r db       # connect to database
+    go run app.go -r redis       # connect to redis
 
 

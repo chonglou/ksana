@@ -80,7 +80,7 @@ func (c *Context) Load(file string) error {
 		return err
 	}
 	if err = c.openRedis(
-		c.config.Redis.Url,
+		c.config.Redis.Url(),
 		c.config.Redis.Pool,
 		c.config.Redis.Db); err != nil {
 		return err

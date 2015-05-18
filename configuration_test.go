@@ -16,7 +16,7 @@ func TestConfiguration(t *testing.T) {
 		Key:      RandomBytes(32),
 		Password: RandomBytes(32),
 		Session:  sessionC{Name: "_ksana", Secret: RandomBytes(32)},
-		Redis:    redisC{Url: "localhost:6379", Db: 0, Pool: 12},
+		Redis:    redisC{Host: "localhost", Port: 6379, Db: 0, Pool: 12},
 		Database: databaseC{
 			Driver:   "postgres",
 			Host:     "localhost",

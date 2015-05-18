@@ -9,9 +9,18 @@ import (
 )
 
 type redisC struct {
-	Url  string `json:"url"`
+	Host string `json:"host"`
+	Port int    `json:"port"`
 	Db   int    `json:"db"`
 	Pool int    `json:"pool"`
+}
+
+func (rc *redisC) Url() string {
+	return fmt.Sprintf("%s:%d", rc.Host, rc.Port)
+}
+
+func (rc *redisC) Shell() (string, []string) {
+	return "telnet", []string{rc.Host, strconv.Itoa(rc.Port)}
 }
 
 type databaseC struct {

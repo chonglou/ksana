@@ -25,7 +25,7 @@ type Application interface {
 }
 
 func New() (Application, error) {
-	actions := []string{"server", "migrate", "rollback", "routes", "db"}
+	actions := []string{"server", "migrate", "rollback", "routes", "db", "redis"}
 	cfg := flag.String("c", "config.json", "configuration file name")
 	act := flag.String("r", "server", "running: "+strings.Join(actions, " | "))
 	flag.Parse()
@@ -94,6 +94,9 @@ func (app *application) Start() error {
 		app.routes()
 	case "db":
 		cmd, args := ctx.config.Database.Shell()
+		err = app.shell(cmd, args...)
+	case "redis":
+		cmd, args := ctx.config.Redis.Shell()
 		err = app.shell(cmd, args...)
 	default:
 	}

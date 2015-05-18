@@ -2,14 +2,15 @@
 	"name": "",
 	"port": 8080,
 	"env": "development",
-	"key": "0ycoi9d9ovKKX/4szw1/84ZemUhEjh7sKHRDAKMoVQI=",
-	"password": "mE6GR0KntIk0wd8OET7JCHPMiEJh9OYL/EZuYvSmmaw=",
+	"key": "ITDJIjwFOWqOrf6dY9/YjgaIkgYCofegHHafw7xbi6A=",
+	"password": "u1sR0+H3SdK4f2yH1P0UMN/AxTHv+mr60fhXGcujkYA=",
 	"session": {
 		"name": "_ksana",
-		"secret": "pqjG6iRryAvf70jlStVEXVrKSV1NjMv63snIAYWYGq0="
+		"secret": "RVzsug1IrxcG1qCvG2tqwgS5y6n84jWxgCL0yunRpe8="
 	},
 	"redis": {
-		"url": "localhost:6379",
+		"host": "localhost",
+		"port": 6379,
 		"db": 0,
 		"pool": 12
 	},
