@@ -1,4 +1,4 @@
-package ksana
+package ksana_web
 
 import (
 	"encoding/gob"
@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"time"
+	utils "github.com/chonglou/ksana/utils"
 )
 
 type FileSessionStore struct {
@@ -52,7 +53,7 @@ type FileSessionProvider struct {
 }
 
 func (fsp *FileSessionProvider) filename(sid string) string {
-	return fmt.Sprintf("%s/%x", fsp.path, Md5([]byte(sid)))
+	return fmt.Sprintf("%s/%x", fsp.path, utils.Md5([]byte(sid)))
 }
 
 func (fsp *FileSessionProvider) Init(sid string) (Session, error) {

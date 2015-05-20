@@ -1,10 +1,11 @@
-package ksana
+package ksana_web
 
 import (
 	"encoding/gob"
 	"fmt"
 	"io/ioutil"
 	"os"
+	utils "github.com/chonglou/ksana/utils"
 	//"time"
 )
 
@@ -13,7 +14,7 @@ type FileCacheProvider struct {
 }
 
 func (fcm *FileCacheProvider) filename(key string) string {
-	return fmt.Sprintf("%s/%x", fcm.path, Md5([]byte(key)))
+	return fmt.Sprintf("%s/%x", fcm.path, utils.Md5([]byte(key)))
 }
 
 func (fcm *FileCacheProvider) Set(key string, value interface{}, expireTime int64) error {

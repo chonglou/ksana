@@ -1,10 +1,11 @@
-package ksana
+package ksana_web
 
 import (
 	"net/http"
 	"net/url"
 	"sync"
 	"time"
+	utils "github.com/chonglou/ksana/utils"
 )
 
 type SessionStore struct {
@@ -41,7 +42,7 @@ func (sm *SessionManager) Start(wrt http.ResponseWriter,
 
 	cke, err := req.Cookie(sm.cookieName)
 	if err != nil || cke.Value == "" {
-		sid := Uuid()
+		sid := utils.Uuid()
 		sess, _ = sm.provider.Init(sid)
 		cke := http.Cookie{
 			Name:     sm.cookieName,

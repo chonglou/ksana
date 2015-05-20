@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/chonglou/ksana/utils"
+	utils "github.com/chonglou/ksana/utils"
 	"io/ioutil"
 	"log"
 	"os"
@@ -185,7 +185,7 @@ func (d *Database) Drop() string {
 
 func (d *Database) Shell() error {
 	cmd, args := d.dialect.Shell(d.config)
-	return ksana_utils.Shell(cmd, args...)
+	return utils.Shell(cmd, args...)
 }
 
 //-------------------command---------------------------------------------------
@@ -352,4 +352,4 @@ func (d *Database) Open(path string, cfg *Config) error {
 
 //-----------------------------------------------------------------------------
 var migrations_table_name = "schema_migrations"
-var logger, _ = ksana_utils.OpenLogger("ksana-orm")
+var logger, _ = utils.OpenLogger("ksana-orm")
