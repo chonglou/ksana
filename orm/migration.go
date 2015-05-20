@@ -1,7 +1,7 @@
 package ksana_orm
 
 type migration struct {
-	version string
-	up      string
-	down    string
+	Version string `json:"version"`
+	Up      string `json:"up"`
+	Down    string `json:"down"`
 }

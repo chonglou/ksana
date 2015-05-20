@@ -1,17 +1,26 @@
 package ksana_orm
 
 type Dialect interface {
-	Serial(name string)
-	Uuid(name string)
-	Boolean(name string, def bool)
-	Float(name string, def float32)
-	Double(name string, def float64)
-	Created(),
-	Updated(),
-	Blob(name string, null bool, def string)
+	SERIAL() string
+	UUID() string
+	BOOLEAN() string
+	FLOAT() string
+	DOUBLE() string
+	BLOB() string
+	BYTES(fix bool, size int) string
+	DATETIME() string
 
+	CurDate() string
+	CurTime() string
+	Now() string
+	Uuid() string
+	Boolean(val bool) string
 
 	CreateDatabase(name string) string
 	DropDatabase(name string) string
-	Shell(cfg *Config) string
+
+	Resource(cfg *Config) string
+	Shell(cfg *Config) (string, []string)
+	Setup() string
+	String(cfg *Config) string
 }
