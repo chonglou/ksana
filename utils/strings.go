@@ -1,4 +1,4 @@
-package ksana
+package ksana_utils
 
 import (
 	"crypto/rand"
