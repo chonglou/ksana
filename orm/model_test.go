@@ -50,8 +50,8 @@ func TestModel(t *testing.T) {
 
 	for _, b := range []interface{}{TestBean1{}, TestBean2{}} {
 		var c, d string
-		m := Model{}
-		c, d, err = m.Table(&db, b)
+		m := Model{db: &db}
+		c, d, err = m.Table(b)
 		if err == nil {
 			log.Printf("UP: %s", c)
 			log.Printf("DOWN: %s", d)
