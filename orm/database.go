@@ -15,7 +15,7 @@ import (
 type Database struct {
 	path    string
 	config  *Config
-	dialect *Dialect
+	dialect Dialect
 	db      *sql.DB
 }
 
@@ -34,7 +34,7 @@ func (d *Database) AddMigration(ver, name, up, down string) error {
 		if err != nil {
 			return err
 		}
-		return ioutil.WriteFile(d.path+"/"+fn, cj, 0600)
+		return ioutil.WriteFile(fn, cj, 0600)
 
 	}
 	return nil
@@ -42,7 +42,7 @@ func (d *Database) AddMigration(ver, name, up, down string) error {
 
 //---------------------sql-----------------------------------------------------
 func (d *Database) Created() string {
-	return d.column("created", d.dialect.DATETIME(), false, "now")
+	return d.column("created", d.dialect.DATETIME(), false, d.dialect.Now())
 }
 
 func (d *Database) Updated() string {
@@ -142,7 +142,7 @@ func (d *Database) column(name string, _type string, null bool, def string) stri
 		ns = " NOT NULL"
 	}
 	if def != "" {
-		ds = " DEFAULT %s"
+		ds = fmt.Sprintf(" DEFAULT %s", def)
 	}
 	return fmt.Sprintf("%s %s%s%s", name, _type, ns, ds)
 }
@@ -160,7 +160,7 @@ func (d *Database) AddIndex(name, table string, unique bool, columns ...string) 
 	if unique {
 		idx = "UNIQUE INDEX"
 	}
-	return fmt.Sprintf("CREATE %s ON %s (%s)", name, table, strings.Join(columns, ","))
+	return fmt.Sprintf("CREATE %s %s ON %s (%s)", idx, name, table, strings.Join(columns, ","))
 
 }
 
@@ -207,6 +207,7 @@ func (d *Database) Open(path string, cfg *Config) error {
 	if err != nil {
 		return err
 	}
+	d.path = path
 
 	switch cfg.Driver {
 	case "postgres":
@@ -236,18 +237,18 @@ func (d *Database) Open(path string, cfg *Config) error {
 	}
 
 	logger.Info("Check migrations schema table")
-	_, err = db.Exec(
-		d.AddTable(migrations_table_name,
-			d.Id(false),
-			d.String("version", false, 255, false, false, ""),
-			d.Created()))
+	sq := d.AddTable(migrations_table_name,
+		d.Id(false),
+		d.String("version", false, 255, false, false, ""),
+		d.Created())
+	logger.Debug(sq)
+	_, err = db.Exec(sq)
 	if err != nil {
 		return err
 	}
 
 	d.db = db
 	d.config = cfg
-	d.path = path
 
 	logger.Info("Database setup successfull")
 	return nil
@@ -255,5 +256,5 @@ func (d *Database) Open(path string, cfg *Config) error {
 }
 
 //-----------------------------------------------------------------------------
-var migrations_table_name = ""
+var migrations_table_name = "schema_migrations"
 var logger, _ = ksana_utils.OpenLogger("ksana-orm")

@@ -2,6 +2,7 @@ package ksana_orm
 
 import (
 	utils "github.com/chonglou/ksana/utils"
+	_ "github.com/lib/pq"
 	"testing"
 )
 
