@@ -20,6 +20,10 @@ type Database struct {
 	db      *sql.DB
 }
 
+func (d *Database) Tx() (*sql.Tx, error) {
+	return d.db.Begin()
+}
+
 func (d *Database) AddMigration(ver, name, up, down string) error {
 	fn := fmt.Sprintf("%s/%s_%s.sql", d.path, ver, name)
 	_, err := os.Stat(fn)
@@ -281,10 +285,12 @@ func (d *Database) Rollback() error {
 
 	return nil
 }
-
+func (d *Database) version() string {
+	return time.Now().Format("20060102150405")
+}
 func (d *Database) Generate(name string) error {
 	return d.AddMigration(
-		time.Now().Format("20060102150405"),
+		d.version(),
 		name,
 		d.AddTable(name, d.Id(false), d.Created()),
 		d.RemoveTable(name))
