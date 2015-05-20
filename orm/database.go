@@ -133,12 +133,12 @@ func (d *Database) Datetime(name string, null bool, def string) string {
 	return d.column(name, d.dialect.DATETIME(), null, ds)
 }
 
-func (d *Database) Float32(name string, null bool, def float32) string {
-	return d.column(name, d.dialect.FLOAT(), null, fmt.Sprintf("%f", def))
+func (d *Database) Float32(name string, def float32) string {
+	return d.column(name, d.dialect.FLOAT(), false, fmt.Sprintf("%f", def))
 }
 
-func (d *Database) Float64(name string, null bool, def float64) string {
-	return d.column(name, d.dialect.DOUBLE(), null, fmt.Sprintf("%f", def))
+func (d *Database) Float64(name string, def float64) string {
+	return d.column(name, d.dialect.DOUBLE(), false, fmt.Sprintf("%f", def))
 }
 
 func (d *Database) column(name string, _type string, null bool, def string) string {
@@ -154,11 +154,11 @@ func (d *Database) column(name string, _type string, null bool, def string) stri
 
 func (d *Database) AddTable(table string, columns ...string) string {
 	return fmt.Sprintf(
-		"CREATE TABLE IF NOT EXISTS %s(%s)", table, strings.Join(columns, ", "))
+		"CREATE TABLE IF NOT EXISTS %s(%s);", table, strings.Join(columns, ", "))
 }
 
 func (d *Database) RemoveTable(table string) string {
-	return fmt.Sprintf("DROP TABLE IF EXISTS %s", table)
+	return fmt.Sprintf("DROP TABLE IF EXISTS %s;", table)
 }
 
 func (d *Database) AddIndex(name, table string, unique bool, columns ...string) string {
@@ -167,12 +167,12 @@ func (d *Database) AddIndex(name, table string, unique bool, columns ...string) 
 		idx = "UNIQUE INDEX"
 	}
 	return fmt.Sprintf(
-		"CREATE %s %s ON %s (%s)", idx, name, table, strings.Join(columns, ", "))
+		"CREATE %s %s ON %s (%s);", idx, name, table, strings.Join(columns, ", "))
 
 }
 
 func (d *Database) RemoveIndex(name string) string {
-	return fmt.Sprintf("DROP INDEX %s")
+	return fmt.Sprintf("DROP INDEX %s;", name)
 }
 
 func (d *Database) Create(name string) string {

@@ -2,25 +2,51 @@ package ksana_orm
 
 import (
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"reflect"
 	"regexp"
+	"strconv"
 	"strings"
 	//"time"
 )
 
-var re_sql_file = regexp.MustCompile("(?P<date>[\\d]{14})(?P<table>[_a-z0-9]+).sql$")
+var re_sql_file = regexp.MustCompile("(?P<date>[\\d]{14})_(?P<table>[_a-zA-Z0-9]+).sql$")
 
 type Model struct {
-	bean  interface{}
-	table string
+	bean interface{}
+	id   string
 }
 
-func (m *Model) Table() string {
-	return m.table
+func (m *Model) tags(field reflect.StructField) (map[string]string, error) {
+	tag := field.Tag.Get("sql")
+	if tag == "-" {
+		return nil, nil
+	}
+
+	tags := make(map[string]string, 0)
+	tags["name"] = field.Name
+
+	if tag != "" {
+		for _, it := range strings.Split(tag, ";") {
+			ss := strings.Split(it, "=")
+			if len(ss) != 2 {
+				return nil, errors.New("Error struct tag format: " + it)
+			}
+			tags[ss[0]] = ss[1]
+		}
+	}
+
+	return tags, nil
 }
 
-func (m *Model) check(path string) (string, error) {
+func (m *Model) table() (string, reflect.Type) {
+	bt := reflect.TypeOf(m.bean)
+	return strings.Replace(bt.String(), ".", "_", -1), bt
+}
+
+func (m *Model) Check(path string) (string, error) {
+	table, _ := m.table()
 
 	files, err := ioutil.ReadDir(path)
 	if err != nil {
@@ -29,68 +55,137 @@ func (m *Model) check(path string) (string, error) {
 
 	for _, f := range files {
 		fn := f.Name()
-		if !re_sql_file.MatchString(fn) {
-			continue
+
+		if re_sql_file.MatchString(fn) {
+			if table == re_sql_file.FindStringSubmatch(fn)[2] {
+				return fn, nil
+			}
 		}
 
-		if m.table == re_sql_file.FindStringSubmatch(fn)[2] {
-			return fn, nil
-		}
 	}
 	return "", nil
 }
 
-func (m *Model) ingnore(tag string) bool {
-	return tag == "-"
-}
-
-func (m *Model) column(field reflect.StructField) (string, string, error) {
-	tag := field.Tag.Get("sql")
-	if m.ingnore(tag) {
-		return "", "", nil
-	}
-
-	col, idx := "", ""
-
-	switch field.Type.Kind() {
-	case reflect.String:
-	case reflect.Bool:
-	case reflect.Int:
-	case reflect.Int64:
-	case reflect.Float32:
-	case reflect.Float64:
-	case reflect.Struct:
-		// if _, ok := field.Type.Interface().(time.Time); ok {
-		//
-		// }
-	default:
-		// if _, ok := field.Type.Interface().([]byte); ok {
-		//
-		// }
-		return "", "", errors.New("Ingnore column " + field.Name)
-	}
-	return col, idx, nil
-}
-
-func (m *Model) Register(db *Database) error { // todo
-
-	bt := reflect.TypeOf(m.bean)
-	logger.Info("Load bean " + bt.Name())
-	m.table = strings.Replace(bt.String(), ".", "_", -1)
-
-	fn, err := m.check(db.path)
+func (m *Model) column(db *Database, field reflect.StructField) (string, error) {
+	tags, err := m.tags(field)
 	if err != nil {
-		return err
+		return "", err
 	}
-	if fn != "" {
-		logger.Info("Find migration " + fn)
-		return nil
+	if tags == nil {
+		return "", nil
 	}
 
-	var columns, indexes []string
+	switch tags["name"] {
+	case "Id":
+		switch field.Type.Kind() {
+		case reflect.Int32:
+			return db.Id(false), nil
+		case reflect.String:
+			return db.Id(true), nil
+		default:
+			return "", errors.New("Error type of id: " + field.Type.Name())
+		}
+	case "Created":
+		return db.Created(), nil
+	case "Updated":
+		return db.Updated(), nil
+	default:
+		switch field.Type.Kind() {
+		case reflect.Int32:
+			val := 0
+			if tags["default"] != "" {
+				val, _ = strconv.Atoi(tags["default"])
+			}
+			return db.Int32(tags["name"], tags["null"] == "true", val), nil
+		case reflect.Int64:
+			var val int64
+			if tags["default"] != "" {
+				val, _ = strconv.ParseInt(tags["default"], 10, 64)
+			}
+			return db.Int64(tags["name"], tags["null"] == "true", val), nil
+		case reflect.String:
+			size, _ := strconv.Atoi(tags["size"])
+			return db.String(
+				tags["name"],
+				tags["fix"] == "true",
+				size,
+				tags["big"] == "true",
+				tags["null"] == "true",
+				tags["default"]), nil
+
+		case reflect.Bool:
+			return db.Bool(tags["name"], tags["default"] == "true"), nil
+
+		case reflect.Float32:
+			var val float64
+			if tags["default"] != "" {
+				val, _ = strconv.ParseFloat(tags["default"], 32)
+			}
+			return db.Float32(tags["name"], float32(val)), nil
+		case reflect.Float64:
+			var val float64
+			if tags["default"] != "" {
+				val, _ = strconv.ParseFloat(tags["default"], 64)
+			}
+			return db.Float64(tags["name"], val), nil
+
+		case reflect.Struct:
+			ty := fmt.Sprintf("%s.%s", field.Type.PkgPath(), field.Type.Name())
+			switch ty {
+			case "time.Time":
+				switch tags["type"] {
+				case "date":
+					return db.Date(
+						tags["name"],
+						tags["null"] == "true",
+						tags["default"]), nil
+				case "time":
+					return db.Time(
+						tags["name"],
+						tags["null"] == "true",
+						tags["default"]), nil
+				default:
+					return db.Datetime(
+						tags["name"],
+						tags["null"] == "true",
+						tags["default"]), nil
+				}
+			default:
+				return "", errors.New("Unsupport struct type " + ty)
+			}
+
+		case reflect.Slice:
+			switch field.Type.Elem().Kind() {
+			case reflect.Uint8:
+				size, _ := strconv.Atoi(tags["size"])
+				return db.Bytes(
+					tags["name"],
+					tags["fix"] == "true",
+					size,
+					tags["big"] == "true",
+					tags["null"] == "true"), nil
+			default:
+				return "", errors.New("Unsupport slice type " + field.Type.Elem().Name())
+			}
+
+		default:
+			// if _, ok := reflect.New(field.Type).Interface().(*[]byte); ok {
+			//
+			// }
+			return "", errors.New("Ingnore column " + field.Name)
+		}
+	}
+
+}
+
+func (m *Model) Table(db *Database) (string, string, error) { // todo
+	table, bt := m.table()
+	logger.Info("Load bean " + bt.Name())
+
+	var columns []string
 
 	for i := 0; i < bt.NumField(); i++ {
-		col, idx, err := m.column(bt.Field(i))
+		col, err := m.column(db, bt.Field(i))
 		if err != nil {
 			logger.Warning(err.Error())
 			continue
@@ -99,13 +194,7 @@ func (m *Model) Register(db *Database) error { // todo
 			columns = append(columns, col)
 		}
 
-		if idx != "" {
-			indexes = append(indexes, idx)
-		}
 	}
 
-	return db.AddMigration(
-		db.version(), m.table,
-		db.AddTable(m.table, columns...)+strings.Join(indexes, ""),
-		db.RemoveTable(m.table))
+	return db.AddTable(table, columns...), db.RemoveTable(table), nil
 }
