@@ -36,6 +36,8 @@ type TestBean2 struct {
 	Float   float32
 	Double  float64
 	Bytes   []byte
+
+	Versions []string `sql:"-"`
 }
 
 func TestModel(t *testing.T) {
@@ -48,8 +50,8 @@ func TestModel(t *testing.T) {
 
 	for _, b := range []interface{}{TestBean1{}, TestBean2{}} {
 		var c, d string
-		m := Model{bean: b}
-		c, d, err = m.Table(&db)
+		m := Model{}
+		c, d, err = m.Table(&db, b)
 		if err == nil {
 			log.Printf("UP: %s", c)
 			log.Printf("DOWN: %s", d)

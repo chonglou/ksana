@@ -14,12 +14,11 @@ import (
 var re_sql_file = regexp.MustCompile("(?P<date>[\\d]{14})_(?P<table>[_a-zA-Z0-9]+).sql$")
 
 type Model struct {
-	bean interface{}
-	id   string
 }
 
 func (m *Model) tags(field reflect.StructField) (map[string]string, error) {
 	tag := field.Tag.Get("sql")
+
 	if tag == "-" {
 		return nil, nil
 	}
@@ -40,30 +39,9 @@ func (m *Model) tags(field reflect.StructField) (map[string]string, error) {
 	return tags, nil
 }
 
-func (m *Model) table() (string, reflect.Type) {
-	bt := reflect.TypeOf(m.bean)
+func (m *Model) table(bean interface{}) (string, reflect.Type) {
+	bt := reflect.TypeOf(bean)
 	return strings.Replace(bt.String(), ".", "_", -1), bt
-}
-
-func (m *Model) Check(path string) (string, error) {
-	table, _ := m.table()
-
-	files, err := ioutil.ReadDir(path)
-	if err != nil {
-		return "", err
-	}
-
-	for _, f := range files {
-		fn := f.Name()
-
-		if re_sql_file.MatchString(fn) {
-			if table == re_sql_file.FindStringSubmatch(fn)[2] {
-				return fn, nil
-			}
-		}
-
-	}
-	return "", nil
 }
 
 func (m *Model) column(db *Database, field reflect.StructField) (string, error) {
@@ -178,8 +156,8 @@ func (m *Model) column(db *Database, field reflect.StructField) (string, error) 
 
 }
 
-func (m *Model) Table(db *Database) (string, string, error) { // todo
-	table, bt := m.table()
+func (m *Model) Table(db *Database, bean interface{}) (string, string, error) {
+	table, bt := m.table(bean)
 	logger.Info("Load bean " + bt.Name())
 
 	var columns []string
@@ -197,4 +175,25 @@ func (m *Model) Table(db *Database) (string, string, error) { // todo
 	}
 
 	return db.AddTable(table, columns...), db.RemoveTable(table), nil
+}
+
+func (m *Model) Check(path string, bean interface{}) (string, error) {
+	table, _ := m.table(bean)
+
+	files, err := ioutil.ReadDir(path)
+	if err != nil {
+		return "", err
+	}
+
+	for _, f := range files {
+		fn := f.Name()
+
+		if re_sql_file.MatchString(fn) {
+			if table == re_sql_file.FindStringSubmatch(fn)[2] {
+				return fn, nil
+			}
+		}
+
+	}
+	return "", nil
 }
