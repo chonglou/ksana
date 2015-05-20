@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/chonglou/ksana/utils"
 	"io/ioutil"
+	"log"
 	"os"
 	"strings"
 	"time"
@@ -148,7 +149,8 @@ func (d *Database) column(name string, _type string, null bool, def string) stri
 }
 
 func (d *Database) AddTable(table string, columns ...string) string {
-	return fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s(%s)", table, strings.Join(columns, ","))
+	return fmt.Sprintf(
+		"CREATE TABLE IF NOT EXISTS %s(%s)", table, strings.Join(columns, ", "))
 }
 
 func (d *Database) RemoveTable(table string) string {
@@ -160,7 +162,8 @@ func (d *Database) AddIndex(name, table string, unique bool, columns ...string) 
 	if unique {
 		idx = "UNIQUE INDEX"
 	}
-	return fmt.Sprintf("CREATE %s %s ON %s (%s)", idx, name, table, strings.Join(columns, ","))
+	return fmt.Sprintf(
+		"CREATE %s %s ON %s (%s)", idx, name, table, strings.Join(columns, ", "))
 
 }
 
@@ -182,14 +185,100 @@ func (d *Database) Shell() error {
 }
 
 //-------------------command---------------------------------------------------
+func (m *Database) readMigration(mig *migration, file string) error {
+	f, e := os.Open(m.path + "/" + file)
+	if e != nil {
+		return e
+	}
+	defer f.Close()
+
+	return json.NewDecoder(f).Decode(mig)
+}
 
 func (d *Database) Migrate() error {
-	//todo
+	files, err := ioutil.ReadDir(d.path)
+	if err != nil {
+		return err
+	}
+
+	for _, f := range files {
+
+		fn := f.Name()
+		var rs *sql.Rows
+
+		rs, err = d.db.Query(fmt.Sprintf(
+			"SELECT id FROM %s WHERE version = $1", migrations_table_name), fn)
+		if err != nil {
+			return err
+		}
+		defer rs.Close()
+
+		if rs.Next() {
+			log.Printf("Has %s", fn)
+		} else {
+			mig := migration{}
+			err = d.readMigration(&mig, fn)
+			if err != nil {
+				return err
+			}
+			log.Printf("Migrate version %s\n%s", fn, mig.Up)
+			_, err = d.db.Exec(mig.Up)
+			if err != nil {
+				return err
+			}
+			_, err = d.db.Exec(fmt.Sprintf(
+				"INSERT INTO %s(version) VALUES($1)", migrations_table_name), fn)
+			if err != nil {
+				return err
+			}
+
+		}
+	}
+	log.Printf("Done!!!")
+
 	return nil
 }
 
 func (d *Database) Rollback() error {
-	//todo
+
+	rs, err := d.db.Query(
+		fmt.Sprintf("SELECT id, version FROM %s ORDER BY id DESC LIMIT 1",
+			migrations_table_name))
+	if err != nil {
+		return err
+	}
+	defer rs.Close()
+
+	if rs.Next() {
+		var id int
+		var ver string
+		err = rs.Scan(&id, &ver)
+		if err != nil {
+			return nil
+		}
+
+		mig := migration{}
+		err = d.readMigration(&mig, ver)
+		if err != nil {
+			return err
+		}
+		log.Printf("Rollback version %s\n%s", ver, mig.Down)
+		_, err = d.db.Exec(mig.Down)
+		if err != nil {
+			return err
+		}
+		_, err = d.db.Exec(fmt.Sprintf(
+			"DELETE FROM %s WHERE id=$1", migrations_table_name), id)
+		if err != nil {
+			return err
+		}
+
+	} else {
+		log.Println("Empty database!")
+	}
+
+	log.Println("Done!")
+
 	return nil
 }
 
