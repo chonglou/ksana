@@ -1,4 +1,4 @@
-package ksana
+package ksana_web
 
 import (
 	"github.com/fzzy/radix/extra/pool"

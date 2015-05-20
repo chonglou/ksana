@@ -1,4 +1,4 @@
-package ksana
+package ksana_web
 
 import (
 	"bytes"
@@ -12,7 +12,7 @@ import (
 	"runtime"
 )
 
-type Handler func(*Request, *Response, *Context) error
+type Handler func(*Request, *Response) error
 
 type Controller struct {
 	Index   []Handler
@@ -167,7 +167,7 @@ func (r *router) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 			req.Parse(rt)
 			err := rt.Call(func(i int, h Handler) error {
 				logger.Debug(fmt.Sprintf("CALL %v %v", i, h))
-				return h(&req, &res, &ctx)
+				return h(&req, &res)
 			})
 
 			if err != nil {

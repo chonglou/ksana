@@ -1,4 +1,4 @@
-package ksana
+package ksana_web
 
 import (
 	//"fmt"
@@ -14,7 +14,7 @@ func Taaa(hf Handler) string {
 	//return fmt.Sprintf("%v", reflect.TypeOf(hf))
 }
 
-func Tbbb(req *Request, res *Response, ctx *Context) error {
+func Tbbb(req *Request, res *Response) error {
 	return nil
 }
 
