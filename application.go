@@ -17,6 +17,8 @@ import (
 
 const VERSION = "v20150510"
 
+var logger, _ = openLogger(os.Getenv("KSANA_ENVIRONMENT"), "ksana")
+
 type Application interface {
 	Start() error
 	Router() Router
