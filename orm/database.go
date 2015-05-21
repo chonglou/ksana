@@ -285,12 +285,12 @@ func (d *Connection) Rollback() error {
 
 	return nil
 }
-func (d *Connection) version() string {
+func (d *Connection) Version() string {
 	return time.Now().Format("20060102150405")
 }
 func (d *Connection) Generate(name string) error {
 	return d.AddMigration(
-		d.version(),
+		d.Version(),
 		name,
 		d.AddTable(name, d.Id(false), d.Created()),
 		d.RemoveTable(name))
