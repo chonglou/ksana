@@ -1,6 +1,7 @@
 package ksana_orm
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -203,4 +204,19 @@ func (m *Model) Check(path string, bean interface{}) (string, error) {
 
 	}
 	return "", nil
+}
+
+func (m *Model) Select(bean interface{}, columns []string, where, order string, offset, limit int, args ...interface{}) (*sql.Rows, error) {
+	table, _ := m.table(bean)
+	return m.db.Select(table, columns, where, order, offset, limit, args...)
+}
+
+func (m *Model) Delete(bean interface{}, where string, args ...interface{}) (sql.Result, error) {
+	table, _ := m.table(bean)
+	return m.db.Delete(table, where, args...)
+}
+
+func (m *Model) Update(bean interface{}, columns, where string, args ...interface{}) (sql.Result, error) {
+	table, _ := m.table(bean)
+	return m.db.Update(table, columns, where, args...)
 }

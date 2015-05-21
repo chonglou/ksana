@@ -12,7 +12,7 @@ var logger, _ = utils.OpenLogger("ksana-i18n")
 var locales = make(map[string]map[string]string, 0)
 
 func Load(path string) error {
-	logger.Info("Loading i18n files")
+	logger.Info("Loading i18n from " + path)
 	files, err := ioutil.ReadDir(path)
 	if err != nil {
 		return err

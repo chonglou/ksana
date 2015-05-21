@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"strconv"
+	"strings"
 )
 
 type pgDialect struct {
@@ -100,4 +101,22 @@ func (d *pgDialect) Setup() string {
 
 func (d *pgDialect) String(cfg *Config) string {
 	return fmt.Sprintf("%s@%s:%d/%s", cfg.User, cfg.Host, cfg.Port, cfg.Name)
+}
+
+func (d *pgDialect) Select(table string, columns []string, where, order string, offset, limit int) string {
+	if order != "" {
+		order = fmt.Sprintf(" ORDER BY %s", order)
+	}
+
+	ofs := ""
+	if offset > 0 {
+		ofs = fmt.Sprintf(" OFFSET %d", offset)
+	}
+
+	lis := ""
+	if limit > 0 {
+		ofs = fmt.Sprintf(" LIMIT %d", offset)
+	}
+
+	return fmt.Sprintf("SELECT %s FROM %s WHERE %s%s%s%s", strings.Join(columns, ", "), table, where, order, ofs, lis)
 }

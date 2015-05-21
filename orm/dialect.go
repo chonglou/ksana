@@ -23,4 +23,6 @@ type Dialect interface {
 	Shell(cfg *Config) (string, []string)
 	Setup() string
 	String(cfg *Config) string
+
+	Select(table string, columns []string, where, order string, offset, limit int) string
 }
