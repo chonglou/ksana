@@ -15,7 +15,7 @@ func TestRedisSession(t *testing.T) {
 		t.Errorf("Open redis error: %v", err)
 	}
 
-	session_t(&RedisSessionProvider{redis: &r, maxLifeTime:600}, t)
+	session_t(&RedisSessionProvider{redis: &r, maxLifeTime: 600}, t)
 }
 
 func TestFileSession(t *testing.T) {

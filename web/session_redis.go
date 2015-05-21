@@ -58,8 +58,8 @@ func (rsp *RedisSessionProvider) Init(sid string) (Session, error) {
 		rsp.key(sid),
 		rsp.maxLifeTime,
 		rsp.redis}
-	err:= ss.save()
-	
+	err := ss.save()
+
 	return ss, err
 }
 

@@ -19,4 +19,4 @@ clean:
 
 
 fmt:
-	gofmt -w *.go orm/*.go web/*.go utils/*.go redis/*.go examples/*.go #auth/*.go
+	gofmt -w *.go orm/*.go web/*.go utils/*.go redis/*.go examples/*.go i18n/*.go
