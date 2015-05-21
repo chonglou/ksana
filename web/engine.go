@@ -6,5 +6,5 @@ import (
 
 type Engine interface {
 	Router(path string, router Router)
-	Migration(orm.Database)
+	Migration(orm.Connection)
 }
