@@ -2,11 +2,13 @@ package ksana
 
 import (
 	"bytes"
-	"container/list"
-	"database/sql"
 	"errors"
 	"flag"
 	"fmt"
+	orm "github.com/chonglou/ksana/orm"
+	redis "github.com/chonglou/ksana/redis"
+	utils "github.com/chonglou/ksana/utils"
+	web "github.com/chonglou/ksana/web"
 	"log"
 	"net/http"
 	"os"
@@ -17,13 +19,13 @@ import (
 
 const VERSION = "v20150510"
 
-var logger, _ = openLogger(os.Getenv("KSANA_ENVIRONMENT"), "ksana")
+var logger, _ = utils.OpenLogger("ksana-app")
 
 type Application interface {
 	Start() error
-	Router() Router
-	Model() Model
-	Mount(path string, engine Engine)
+	Router() web.Router
+	Model() orm.Model
+	Mount(path string, engine web.Engine)
 }
 
 func New() (Application, error) {
@@ -34,20 +36,34 @@ func New() (Application, error) {
 
 	var err error
 	var app Application
+	config := configuration{}
 
-	err = ctx.Load(*cfg)
+	err = readConfig(&config, *cfg)
 	if err != nil {
 		return nil, err
 	}
 
 	for _, a := range actions {
 
+		model, err := orm.New("db/migrate", &config.Database)
+		if err != nil {
+			return nil, err
+		}
+
+		redis := redis.Connection{}
+		err = redis.Open(&config.Redis)
+		if err != nil {
+			return nil, err
+		}
+
+		config.file = *cfg
 		if a == *act {
 			app = &application{
-				config: *cfg,
+				config: &config,
 				action: *act,
-				router: &router{routes: list.New(), templates: "app/views"},
-				model:  &model{path: "db/migrate", db: ctx.Get("db").(*sql.DB)},
+				router: web.New("app/views"),
+				model:  model,
+				redis:  &redis,
 			}
 			break
 		}
@@ -63,22 +79,23 @@ func New() (Application, error) {
 }
 
 type application struct {
-	config string
+	config *configuration
 	action string
 
-	router Router
-	model  Model
+	router web.Router
+	model  orm.Model
+	redis  *redis.Connection
 }
 
-func (app *application) Mount(p string, e Engine) {
-	e.Router(p, app.Router())
+func (app *application) Mount(mount string, e web.Engine) {
+	e.Router(mount, app.Router())
 }
 
-func (app *application) Model() Model {
+func (app *application) Model() orm.Model {
 	return app.model
 }
 
-func (app *application) Router() Router {
+func (app *application) Router() web.Router {
 	return app.router
 }
 
@@ -89,17 +106,15 @@ func (app *application) Start() error {
 	case "server":
 		err = app.server()
 	case "migrate":
-		err = app.model.Migrate()
+		err = app.model.Db().Migrate()
 	case "rollback":
-		err = app.model.Rollback()
+		err = app.model.Db().Rollback()
 	case "routes":
 		app.routes()
 	case "db":
-		cmd, args := ctx.config.Database.Shell()
-		err = app.shell(cmd, args...)
+		err = app.model.Db().Shell()
 	case "redis":
-		cmd, args := ctx.config.Redis.Shell()
-		err = app.shell(cmd, args...)
+		err = app.redis.Shell()
 	default:
 	}
 
@@ -124,10 +139,10 @@ func (app *application) server() error {
 	log.Printf("=> Booting Ksana(%s)", VERSION)
 	log.Printf(
 		"=> Application starting in %s on http://0.0.0.0:%v",
-		ctx.config.Env,
-		ctx.config.Port)
-	log.Printf("=> Run `cat %s` for more startup options", app.config)
+		app.config.Env,
+		app.config.Web.Port)
+	log.Printf("=> Run `cat %s` for more startup options", app.config.file)
 	log.Println("=> Ctrl-C to shutdown server")
 
-	return http.ListenAndServe(fmt.Sprintf(":%d", ctx.config.Port), app.router)
+	return http.ListenAndServe(fmt.Sprintf(":%d", app.config.Web.Port), app.router)
 }

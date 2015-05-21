@@ -2,65 +2,22 @@ package ksana
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"os"
-	"strconv"
+
+	orm "github.com/chonglou/ksana/orm"
+	redis "github.com/chonglou/ksana/redis"
+	web "github.com/chonglou/ksana/web"
 )
 
-type redisC struct {
-	Host string `json:"host"`
-	Port int    `json:"port"`
-	Db   int    `json:"db"`
-	Pool int    `json:"pool"`
-}
-
-func (rc *redisC) Url() string {
-	return fmt.Sprintf("%s:%d", rc.Host, rc.Port)
-}
-
-func (rc *redisC) Shell() (string, []string) {
-	return "telnet", []string{rc.Host, strconv.Itoa(rc.Port)}
-}
-
-type databaseC struct {
-	Driver   string `json:"driver"`
-	Host     string `json:"host"`
-	Port     int    `json:"port"`
-	Name     string `json:"name"`
-	User     string `json:"user"`
-	Password string `json:"password"`
-	Ssl      string `json:"ssl"`
-}
-
-func (dc *databaseC) Url() string {
-	return fmt.Sprintf(
-		"%s://%s:%s@%s:%d/%s?sslmode=%s",
-		dc.Driver, dc.User, dc.Password, dc.Host, dc.Port, dc.Name, dc.Ssl)
-}
-
-func (dc *databaseC) Shell() (string, []string) {
-	return "psql", []string{
-		"-h", dc.Host,
-		"-p", strconv.Itoa(dc.Port),
-		"-d", dc.Name,
-		"-U", dc.User}
-}
-
-type sessionC struct {
-	Name   string `json:"name"`
-	Secret []byte `json:"secret"`
-}
-
 type configuration struct {
-	Name     string    `json:"name"`
-	Port     int       `json:"port"`
-	Env      string    `json:"env"`
-	Key      []byte    `json:"key"`
-	Password []byte    `json:"password"`
-	Session  sessionC  `json:"session"`
-	Redis    redisC    `json:"redis"`
-	Database databaseC `json:"database"`
+	file string
+
+	Env      string       `json:"env"`
+	Secret   []byte       `json:"secret"`
+	Web      web.Config   `json:"web"`
+	Database orm.Config   `json:"database"`
+	Redis    redis.Config `json:"redis"`
 }
 
 func writeConfig(cfg *configuration, file string) error {

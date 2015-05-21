@@ -4,7 +4,8 @@ test:
 	cd orm && go test
 	cd web && go test
 	cd redis && go test
-	#go test
+	cd i18n && go test
+	go test
 
 
 install:

@@ -58,8 +58,8 @@ func (r *Connection) Open(cfg *Config) error {
 
 }
 
-func (r *Connection) Shell() (string, []string) {
-	return "telnet", []string{r.config.Host, strconv.Itoa(r.config.Port)}
+func (r *Connection) Shell() error {
+	return utils.Shell("telnet", []string{r.config.Host, strconv.Itoa(r.config.Port)}...)
 }
 
 func (r *Connection) cmd(f func(*redis.Client) error) error {

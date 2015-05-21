@@ -13,11 +13,21 @@ import (
 
 var re_sql_file = regexp.MustCompile("(?P<date>[\\d]{14})_(?P<table>[_a-zA-Z0-9]+).sql$")
 
-type Model struct {
+type Model interface {
+	Index(bean interface{}, unique bool, fields ...string) (string, string)
+	Table(bean interface{}) (string, string, error)
+	Check(path string, bean interface{}) (string, error)
+	Select(bean interface{}, columns []string, where, order string, offset, limit int, args ...interface{}) (*sql.Rows, error)
+	Delete(bean interface{}, where string, args ...interface{}) (sql.Result, error)
+	Update(bean interface{}, columns, where string, args ...interface{}) (sql.Result, error)
+	Db() *Connection
+}
+
+type model struct {
 	db *Connection
 }
 
-func (m *Model) tags(field reflect.StructField) (map[string]string, error) {
+func (m *model) tags(field reflect.StructField) (map[string]string, error) {
 	tag := field.Tag.Get("sql")
 
 	if tag == "-" {
@@ -40,12 +50,12 @@ func (m *Model) tags(field reflect.StructField) (map[string]string, error) {
 	return tags, nil
 }
 
-func (m *Model) table(bean interface{}) (string, reflect.Type) {
+func (m *model) table(bean interface{}) (string, reflect.Type) {
 	bt := reflect.TypeOf(bean)
 	return strings.Replace(bt.String(), ".", "_", -1), bt
 }
 
-func (m *Model) column(field reflect.StructField) (string, error) {
+func (m *model) column(field reflect.StructField) (string, error) {
 	tags, err := m.tags(field)
 	if err != nil {
 		return "", err
@@ -157,14 +167,14 @@ func (m *Model) column(field reflect.StructField) (string, error) {
 
 }
 
-func (m *Model) Index(bean interface{}, unique bool, fields ...string) (string, string) {
+func (m *model) Index(bean interface{}, unique bool, fields ...string) (string, string) {
 	table, _ := m.table(bean)
 	idx := fmt.Sprintf("%s_%s_idx", table, strings.Join(fields, "_"))
 	return m.db.AddIndex(idx, table, unique, fields...), m.db.RemoveIndex(idx)
 
 }
 
-func (m *Model) Table(bean interface{}) (string, string, error) {
+func (m *model) Table(bean interface{}) (string, string, error) {
 	table, bt := m.table(bean)
 	logger.Info("Load bean " + bt.Name())
 
@@ -185,7 +195,7 @@ func (m *Model) Table(bean interface{}) (string, string, error) {
 	return m.db.AddTable(table, columns...), m.db.RemoveTable(table), nil
 }
 
-func (m *Model) Check(path string, bean interface{}) (string, error) {
+func (m *model) Check(path string, bean interface{}) (string, error) {
 	table, _ := m.table(bean)
 
 	files, err := ioutil.ReadDir(path)
@@ -206,17 +216,23 @@ func (m *Model) Check(path string, bean interface{}) (string, error) {
 	return "", nil
 }
 
-func (m *Model) Select(bean interface{}, columns []string, where, order string, offset, limit int, args ...interface{}) (*sql.Rows, error) {
+func (m *model) Select(bean interface{}, columns []string, where, order string, offset, limit int, args ...interface{}) (*sql.Rows, error) {
 	table, _ := m.table(bean)
 	return m.db.Select(table, columns, where, order, offset, limit, args...)
 }
 
-func (m *Model) Delete(bean interface{}, where string, args ...interface{}) (sql.Result, error) {
+func (m *model) Delete(bean interface{}, where string, args ...interface{}) (sql.Result, error) {
 	table, _ := m.table(bean)
 	return m.db.Delete(table, where, args...)
 }
 
-func (m *Model) Update(bean interface{}, columns, where string, args ...interface{}) (sql.Result, error) {
+func (m *model) Update(bean interface{}, columns, where string, args ...interface{}) (sql.Result, error) {
 	table, _ := m.table(bean)
 	return m.db.Update(table, columns, where, args...)
+}
+
+//---------others----------
+
+func (m *model) Db() *Connection {
+	return m.db
 }

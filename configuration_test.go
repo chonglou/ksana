@@ -1,6 +1,10 @@
 package ksana
 
 import (
+	orm "github.com/chonglou/ksana/orm"
+	redis "github.com/chonglou/ksana/redis"
+	utils "github.com/chonglou/ksana/utils"
+	web "github.com/chonglou/ksana/web"
 	"log"
 	"testing"
 )
@@ -11,13 +15,14 @@ func TestConfiguration(t *testing.T) {
 	log.Println("========== TEST CONFIGURATION ==========")
 
 	cfg1 := configuration{
-		Port:     8080,
-		Env:      "development",
-		Key:      RandomBytes(32),
-		Password: RandomBytes(32),
-		Session:  sessionC{Name: "_ksana", Secret: RandomBytes(32)},
-		Redis:    redisC{Host: "localhost", Port: 6379, Db: 0, Pool: 12},
-		Database: databaseC{
+		Env:    "development",
+		Secret: utils.RandomBytes(512),
+		Web: web.Config{
+			Port:   8080,
+			Cookie: utils.RandomStr(8),
+			Expire: 60 * 30},
+		Redis: redis.Config{Host: "localhost", Port: 6379, Db: 0, Pool: 12},
+		Database: orm.Config{
 			Driver:   "postgres",
 			Host:     "localhost",
 			Port:     5432,
@@ -38,7 +43,7 @@ func TestConfiguration(t *testing.T) {
 		t.Errorf("Read config error: %v", err)
 	}
 
-	if cfg1.Port != cfg2.Port {
+	if cfg1.Web.Port != cfg2.Web.Port {
 		t.Errorf("Read not equal with write")
 	}
 }
