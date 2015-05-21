@@ -1,11 +1,11 @@
 package ksana_web
 
 import (
+	utils "github.com/chonglou/ksana/utils"
 	"net/http"
 	"net/url"
 	"sync"
 	"time"
-	utils "github.com/chonglou/ksana/utils"
 )
 
 type SessionStore struct {

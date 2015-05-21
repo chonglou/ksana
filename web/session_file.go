@@ -3,10 +3,10 @@ package ksana_web
 import (
 	"encoding/gob"
 	"fmt"
+	utils "github.com/chonglou/ksana/utils"
 	"io/ioutil"
 	"os"
 	"time"
-	utils "github.com/chonglou/ksana/utils"
 )
 
 type FileSessionStore struct {

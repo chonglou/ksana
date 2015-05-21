@@ -1,7 +1,7 @@
 package ksana_web
 
-import(
-  utils "github.com/chonglou/ksana/utils"
-  )
+import (
+	utils "github.com/chonglou/ksana/utils"
+)
 
-  var logger, _ = utils.OpenLogger("ksana-web")
+var logger, _ = utils.OpenLogger("ksana-web")

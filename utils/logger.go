@@ -14,4 +14,3 @@ func OpenLogger(tag string) (*syslog.Writer, error) {
 	}
 	return syslog.New(level, tag)
 }
-

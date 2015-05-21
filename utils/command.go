@@ -1,10 +1,10 @@
 package ksana_utils
 
-import(
-  "os/exec"
-  "syscall"
-  "os"
-  )
+import (
+	"os"
+	"os/exec"
+	"syscall"
+)
 
 func Shell(cmd string, args ...string) error {
 	bin, err := exec.LookPath(cmd)
