@@ -8,12 +8,13 @@ import (
 
 type RedisSessionStore struct {
 	SessionStore
-	key   string
-	redis *ksana_redis.Connection
+	key         string
+	maxLifeTime int64
+	redis       *ksana_redis.Connection
 }
 
 func (rss *RedisSessionStore) save() error {
-	return rss.redis.Set(rss.key, rss.value, 0)
+	return rss.redis.Set(rss.key, rss.value, rss.maxLifeTime)
 }
 
 func (rss *RedisSessionStore) Set(key, value interface{}) error {
@@ -25,6 +26,7 @@ func (rss *RedisSessionStore) Get(key interface{}) interface{} {
 	if v, ok := rss.value[key]; ok {
 		return v
 	}
+	rss.redis.Expire(rss.key, rss.maxLifeTime)
 	return nil
 }
 
@@ -38,7 +40,8 @@ func (rss *RedisSessionStore) SessionId() string {
 }
 
 type RedisSessionProvider struct {
-	redis *ksana_redis.Connection
+	redis       *ksana_redis.Connection
+	maxLifeTime int64
 }
 
 func (rsp *RedisSessionProvider) key(sid string) string {
@@ -46,26 +49,32 @@ func (rsp *RedisSessionProvider) key(sid string) string {
 }
 
 func (rsp *RedisSessionProvider) Init(sid string) (Session, error) {
+
 	ss := &RedisSessionStore{
 		SessionStore{
 			sid:          sid,
 			value:        make(map[interface{}]interface{}, 0),
 			timeAccessed: time.Now()},
 		rsp.key(sid),
+		rsp.maxLifeTime,
 		rsp.redis}
-	err := ss.save()
+	err:= ss.save()
+	
 	return ss, err
 }
 
 func (rsp *RedisSessionProvider) Read(sid string) (Session, error) {
+	key := rsp.key(sid)
+
 	val := make(map[interface{}]interface{}, 0)
-	if err := rsp.redis.Get(rsp.key(sid), &val); err == nil {
+	if err := rsp.redis.Get(key, &val); err == nil {
 		return &RedisSessionStore{
 			SessionStore{
 				sid:          sid,
 				value:        val,
 				timeAccessed: time.Now()},
-			rsp.key(sid),
+			key,
+			rsp.maxLifeTime,
 			rsp.redis}, nil
 	} else {
 		return nil, err

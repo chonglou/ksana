@@ -15,7 +15,7 @@ func TestRedisSession(t *testing.T) {
 		t.Errorf("Open redis error: %v", err)
 	}
 
-	session_t(&RedisSessionProvider{redis: &r}, t)
+	session_t(&RedisSessionProvider{redis: &r, maxLifeTime:600}, t)
 }
 
 func TestFileSession(t *testing.T) {
@@ -23,7 +23,7 @@ func TestFileSession(t *testing.T) {
 }
 
 func session_t(sp SessionProvider, t *testing.T) {
-	sess, err := sp.Read(sid)
+	sess, err := sp.Init(sid)
 	if err != nil {
 		t.Errorf("Session init error: %v", err)
 	}

@@ -36,7 +36,7 @@ func (r *Connection) Open(cfg *Config) error {
 		if err != nil {
 			return nil, err
 		}
-		err = client.Cmd("select", 8).Err
+		err = client.Cmd("SELECT", cfg.Db).Err
 		if err != nil {
 			return nil, err
 		}
@@ -112,6 +112,12 @@ func (r *Connection) Get(key string, val interface{}) error {
 	}
 
 	return enc.Decode(val)
+}
+
+func (r *Connection) Expire(key string, time int64) error {
+	return r.cmd(func(c *redis.Client) error {
+		return c.Cmd("EXPIRE", key, time).Err
+	})
 }
 
 // func (r *Connection) Cache(key string, val interface{}, f func(interface{}) error, expire int64) error {
