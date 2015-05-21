@@ -7,8 +7,11 @@ import (
 const sid = "test_session_sid"
 
 func TestFileSession(t *testing.T) {
-	fsp := FileSessionProvider{path: "/tmp/ksana/tmp/sessions"}
-	sess, err := fsp.Read(sid)
+	session_t(&FileSessionProvider{path: "/tmp/ksana/tmp/sessions"}, t)
+}
+
+func session_t(sp SessionProvider, t *testing.T) {
+	sess, err := sp.Read(sid)
 	if err != nil {
 		t.Errorf("Session init error: %v", err)
 	}
@@ -18,7 +21,7 @@ func TestFileSession(t *testing.T) {
 		t.Errorf("Session set error: %v", err)
 	}
 
-	s1, e1 := fsp.Read(sid)
+	s1, e1 := sp.Read(sid)
 	if e1 != nil {
 		t.Errorf("Session read error: %v", e1)
 	}
@@ -26,7 +29,5 @@ func TestFileSession(t *testing.T) {
 	if s1.Get(key) != val {
 		t.Errorf("Want %i, Get %i", val, s1.Get(key))
 	}
-
-	_ = SessionManager{provider: &fsp}
 
 }

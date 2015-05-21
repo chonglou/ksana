@@ -5,22 +5,22 @@ import (
 	"github.com/chonglou/ksana/redis"
 )
 
-type RedisCacheProvider struct {
+type RedisCacheManager struct {
 	redis *ksana_redis.Connection
 }
 
-func (rcp *RedisCacheProvider) key(key string) string {
+func (rcm *RedisCacheManager) key(key string) string {
 	return fmt.Sprintf("cache://%s", key)
 }
 
-func (rcp *RedisCacheProvider) Set(key string, value interface{}, expire int64) error {
-	return rcp.redis.Set(rcp.key(key), value, expire)
+func (rcm *RedisCacheManager) Set(key string, value interface{}, expire int64) error {
+	return rcm.redis.Set(rcm.key(key), value, expire)
 }
 
-func (rcp *RedisCacheProvider) Get(key string, value interface{}) error {
-	return rcp.redis.Get(rcp.key(key), value)
+func (rcm *RedisCacheManager) Get(key string, value interface{}) error {
+	return rcm.redis.Get(rcm.key(key), value)
 }
 
-func (fcm *RedisCacheProvider) Gc() {
+func (rcm *RedisCacheManager) Gc() {
 	logger.Info("Call gc")
 }

@@ -18,14 +18,14 @@ func TestRedisCache(t *testing.T) {
 		t.Errorf("Open redis error: %v", err)
 	}
 
-	cache(&CacheManager{provider: &RedisCacheProvider{redis: &r}}, t)
+	cache_t(&RedisCacheManager{redis: &r}, t)
 }
 
 func TestFileCache(t *testing.T) {
-	cache(&CacheManager{provider: &FileCacheProvider{path: "/tmp/ksana/tmp/cache"}}, t)
+	cache_t(&FileCacheManager{path: "/tmp/ksana/tmp/cache"}, t)
 }
 
-func cache(cm *CacheManager, t *testing.T) {
+func cache_t(cm CacheManager, t *testing.T) {
 	cache_value := map[string]interface{}{"aaa": "111", "bbb": 222, "ccc": 1.2}
 
 	err := cm.Set(cache_key, cache_value, 3600*24)

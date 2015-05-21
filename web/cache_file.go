@@ -6,18 +6,23 @@ import (
 	utils "github.com/chonglou/ksana/utils"
 	"io/ioutil"
 	"os"
+	"sync"
 	//"time"
 )
 
-type FileCacheProvider struct {
+type FileCacheManager struct {
 	path string
+	lock sync.Mutex
 }
 
-func (fcm *FileCacheProvider) filename(key string) string {
+func (fcm *FileCacheManager) filename(key string) string {
 	return fmt.Sprintf("%s/%x", fcm.path, utils.Md5([]byte(key)))
 }
 
-func (fcm *FileCacheProvider) Set(key string, value interface{}, expireTime int64) error {
+func (fcm *FileCacheManager) Set(key string, value interface{}, expireTime int64) error {
+	fcm.lock.Lock()
+	defer fcm.lock.Unlock()
+
 	fn := fcm.filename(key)
 	f, err := os.Create(fn)
 	if err != nil {
@@ -36,7 +41,10 @@ func (fcm *FileCacheProvider) Set(key string, value interface{}, expireTime int6
 	return nil
 }
 
-func (fcm *FileCacheProvider) Get(key string, value interface{}) error {
+func (fcm *FileCacheManager) Get(key string, value interface{}) error {
+	fcm.lock.Lock()
+	defer fcm.lock.Unlock()
+
 	fn := fcm.filename(key)
 	f, err := os.Open(fn)
 	if err != nil {
@@ -48,7 +56,10 @@ func (fcm *FileCacheProvider) Get(key string, value interface{}) error {
 	return de.Decode(value)
 }
 
-func (fcm *FileCacheProvider) Gc() {
+func (fcm *FileCacheManager) Gc() {
+	fcm.lock.Lock()
+	defer fcm.lock.Unlock()
+
 	files, err := ioutil.ReadDir(fcm.path)
 	if err != nil {
 		return
