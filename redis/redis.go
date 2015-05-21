@@ -10,7 +10,7 @@ import (
 	"strconv"
 )
 
-var logger, _ = utils.OpenLogger("ksana-web")
+var logger, _ = utils.OpenLogger("ksana-redis")
 
 type Config struct {
 	Host string `json:"host"`
@@ -19,12 +19,12 @@ type Config struct {
 	Pool int    `json:"pool"`
 }
 
-type Redis struct {
+type Connection struct {
 	config *Config
 	pool   *pool.Pool
 }
 
-func (r *Redis) Open(cfg *Config) error {
+func (r *Connection) Open(cfg *Config) error {
 	logger.Info("Connect to redis")
 
 	df := func(network, addr string) (*redis.Client, error) {
@@ -50,7 +50,7 @@ func (r *Redis) Open(cfg *Config) error {
 	if e != nil {
 		return e
 	}
-	logger.Info("Redis setup successfull")
+	logger.Info("Connection setup successfull")
 
 	r.pool = p
 	r.config = cfg
@@ -58,11 +58,11 @@ func (r *Redis) Open(cfg *Config) error {
 
 }
 
-func (r *Redis) Shell() (string, []string) {
+func (r *Connection) Shell() (string, []string) {
 	return "telnet", []string{r.config.Host, strconv.Itoa(r.config.Port)}
 }
 
-func (r *Redis) cmd(f func(*redis.Client) error) error {
+func (r *Connection) cmd(f func(*redis.Client) error) error {
 	c, e := r.pool.Get()
 	if e != nil {
 		return e
@@ -71,7 +71,7 @@ func (r *Redis) cmd(f func(*redis.Client) error) error {
 	return f(c)
 }
 
-func (r *Redis) Set(key string, val interface{}, expire int64) error {
+func (r *Connection) Set(key string, val interface{}, expire int64) error {
 	var buf bytes.Buffer
 	enc := gob.NewEncoder(&buf)
 	err := enc.Encode(val)
@@ -93,7 +93,7 @@ func (r *Redis) Set(key string, val interface{}, expire int64) error {
 
 }
 
-func (r *Redis) Get(key string, val interface{}) error {
+func (r *Connection) Get(key string, val interface{}) error {
 	var buf bytes.Buffer
 	enc := gob.NewDecoder(&buf)
 	err := r.cmd(func(c *redis.Client) error {
@@ -112,7 +112,7 @@ func (r *Redis) Get(key string, val interface{}) error {
 	return enc.Decode(val)
 }
 
-// func (r *Redis) Cache(key string, val interface{}, f func(interface{}) error, expire int64) error {
+// func (r *Connection) Cache(key string, val interface{}, f func(interface{}) error, expire int64) error {
 // 	err := r.Get(key, val)
 // 	if err == nil {
 // 		return nil

@@ -18,7 +18,7 @@ var path = "/tmp/migrate"
 
 func TestOrm(t *testing.T) {
 
-	db := Database{}
+	db := Connection{}
 
 	err := db.Open(path, &cfg)
 	if err != nil {

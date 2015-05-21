@@ -41,7 +41,7 @@ type TestBean2 struct {
 }
 
 func TestModel(t *testing.T) {
-	db := Database{}
+	db := Connection{}
 
 	err := db.Open(path, &cfg)
 	if err != nil {

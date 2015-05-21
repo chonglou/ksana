@@ -11,7 +11,7 @@ type P struct {
 }
 
 func TestRedis(t *testing.T) {
-	r := Redis{}
+	r := Connection{}
 	err := r.Open(&Config{Host: "localhost", Port: 6379, Db: 2, Pool: 12})
 	if err != nil {
 		t.Errorf("Open redis error: %v", err)

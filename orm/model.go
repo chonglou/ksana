@@ -13,7 +13,7 @@ import (
 var re_sql_file = regexp.MustCompile("(?P<date>[\\d]{14})_(?P<table>[_a-zA-Z0-9]+).sql$")
 
 type Model struct {
-	db *Database
+	db *Connection
 }
 
 func (m *Model) tags(field reflect.StructField) (map[string]string, error) {

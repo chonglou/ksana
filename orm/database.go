@@ -13,18 +13,18 @@ import (
 	"time"
 )
 
-type Database struct {
+type Connection struct {
 	path    string
 	config  *Config
 	dialect Dialect
 	db      *sql.DB
 }
 
-func (d *Database) Tx() (*sql.Tx, error) {
+func (d *Connection) Tx() (*sql.Tx, error) {
 	return d.db.Begin()
 }
 
-func (d *Database) AddMigration(ver, name, up, down string) error {
+func (d *Connection) AddMigration(ver, name, up, down string) error {
 	fn := fmt.Sprintf("%s/%s_%s.sql", d.path, ver, name)
 	_, err := os.Stat(fn)
 	if err == nil {
@@ -46,15 +46,15 @@ func (d *Database) AddMigration(ver, name, up, down string) error {
 }
 
 //---------------------sql-----------------------------------------------------
-func (d *Database) Created() string {
+func (d *Connection) Created() string {
 	return d.column("created", d.dialect.DATETIME(), false, d.dialect.Now())
 }
 
-func (d *Database) Updated() string {
+func (d *Connection) Updated() string {
 	return d.column("updated", d.dialect.DATETIME(), true, "")
 }
 
-func (d *Database) Id(uuid bool) string {
+func (d *Connection) Id(uuid bool) string {
 	if uuid {
 		return fmt.Sprintf(
 			"id %s NOT NULL PRIMARY KEY DEFAULT %s",
@@ -63,11 +63,11 @@ func (d *Database) Id(uuid bool) string {
 	return fmt.Sprintf("id %s", d.dialect.SERIAL())
 }
 
-func (d *Database) Bool(name string, def bool) string {
+func (d *Connection) Bool(name string, def bool) string {
 	return d.column(name, d.dialect.BOOLEAN(), false, d.dialect.Boolean(def))
 }
 
-func (d *Database) String(name string, fix bool, size int, big, null bool, def string) string {
+func (d *Connection) String(name string, fix bool, size int, big, null bool, def string) string {
 	var ts string
 	switch {
 	case big:
@@ -83,15 +83,15 @@ func (d *Database) String(name string, fix bool, size int, big, null bool, def s
 	return d.column(name, ts, null, def)
 }
 
-func (d *Database) Int32(name string, null bool, def int) string {
+func (d *Connection) Int32(name string, null bool, def int) string {
 	return d.column(name, "INT", null, fmt.Sprintf("%d", def))
 }
 
-func (d *Database) Int64(name string, null bool, def int64) string {
+func (d *Connection) Int64(name string, null bool, def int64) string {
 	return d.column(name, "BIGINT", null, fmt.Sprintf("%d", def))
 }
 
-func (d *Database) Bytes(name string, fix bool, size int, big, null bool) string {
+func (d *Connection) Bytes(name string, fix bool, size int, big, null bool) string {
 	if big {
 		return d.column(name, d.dialect.BLOB(), null, "")
 	} else {
@@ -100,7 +100,7 @@ func (d *Database) Bytes(name string, fix bool, size int, big, null bool) string
 
 }
 
-func (d *Database) Date(name string, null bool, def string) string {
+func (d *Connection) Date(name string, null bool, def string) string {
 	var ds string
 	switch def {
 	case "now":
@@ -111,7 +111,7 @@ func (d *Database) Date(name string, null bool, def string) string {
 	return d.column(name, "DATE", null, ds)
 }
 
-func (d *Database) Time(name string, null bool, def string) string {
+func (d *Connection) Time(name string, null bool, def string) string {
 	var ds string
 	switch def {
 	case "now":
@@ -122,7 +122,7 @@ func (d *Database) Time(name string, null bool, def string) string {
 	return d.column(name, "TIME", null, ds)
 }
 
-func (d *Database) Datetime(name string, null bool, def string) string {
+func (d *Connection) Datetime(name string, null bool, def string) string {
 	var ds string
 	switch def {
 	case "now":
@@ -133,15 +133,15 @@ func (d *Database) Datetime(name string, null bool, def string) string {
 	return d.column(name, d.dialect.DATETIME(), null, ds)
 }
 
-func (d *Database) Float32(name string, def float32) string {
+func (d *Connection) Float32(name string, def float32) string {
 	return d.column(name, d.dialect.FLOAT(), false, fmt.Sprintf("%f", def))
 }
 
-func (d *Database) Float64(name string, def float64) string {
+func (d *Connection) Float64(name string, def float64) string {
 	return d.column(name, d.dialect.DOUBLE(), false, fmt.Sprintf("%f", def))
 }
 
-func (d *Database) column(name string, _type string, null bool, def string) string {
+func (d *Connection) column(name string, _type string, null bool, def string) string {
 	ns, ds := "", ""
 	if !null {
 		ns = " NOT NULL"
@@ -152,16 +152,16 @@ func (d *Database) column(name string, _type string, null bool, def string) stri
 	return fmt.Sprintf("%s %s%s%s", name, _type, ns, ds)
 }
 
-func (d *Database) AddTable(table string, columns ...string) string {
+func (d *Connection) AddTable(table string, columns ...string) string {
 	return fmt.Sprintf(
 		"CREATE TABLE IF NOT EXISTS %s(%s);", table, strings.Join(columns, ", "))
 }
 
-func (d *Database) RemoveTable(table string) string {
+func (d *Connection) RemoveTable(table string) string {
 	return fmt.Sprintf("DROP TABLE IF EXISTS %s;", table)
 }
 
-func (d *Database) AddIndex(name, table string, unique bool, columns ...string) string {
+func (d *Connection) AddIndex(name, table string, unique bool, columns ...string) string {
 	idx := "INDEX"
 	if unique {
 		idx = "UNIQUE INDEX"
@@ -171,25 +171,25 @@ func (d *Database) AddIndex(name, table string, unique bool, columns ...string) 
 
 }
 
-func (d *Database) RemoveIndex(name string) string {
+func (d *Connection) RemoveIndex(name string) string {
 	return fmt.Sprintf("DROP INDEX %s;", name)
 }
 
-func (d *Database) Create(name string) string {
+func (d *Connection) Create(name string) string {
 	return d.dialect.CreateDatabase(d.config.Name)
 }
 
-func (d *Database) Drop() string {
+func (d *Connection) Drop() string {
 	return d.dialect.DropDatabase(d.config.Name)
 }
 
-func (d *Database) Shell() error {
+func (d *Connection) Shell() error {
 	cmd, args := d.dialect.Shell(d.config)
 	return utils.Shell(cmd, args...)
 }
 
 //-------------------command---------------------------------------------------
-func (m *Database) readMigration(mig *migration, file string) error {
+func (m *Connection) readMigration(mig *migration, file string) error {
 	f, e := os.Open(m.path + "/" + file)
 	if e != nil {
 		return e
@@ -199,7 +199,7 @@ func (m *Database) readMigration(mig *migration, file string) error {
 	return json.NewDecoder(f).Decode(mig)
 }
 
-func (d *Database) Migrate() error {
+func (d *Connection) Migrate() error {
 	files, err := ioutil.ReadDir(d.path)
 	if err != nil {
 		return err
@@ -243,7 +243,7 @@ func (d *Database) Migrate() error {
 	return nil
 }
 
-func (d *Database) Rollback() error {
+func (d *Connection) Rollback() error {
 
 	rs, err := d.db.Query(
 		fmt.Sprintf("SELECT id, version FROM %s ORDER BY id DESC LIMIT 1",
@@ -285,10 +285,10 @@ func (d *Database) Rollback() error {
 
 	return nil
 }
-func (d *Database) version() string {
+func (d *Connection) version() string {
 	return time.Now().Format("20060102150405")
 }
-func (d *Database) Generate(name string) error {
+func (d *Connection) Generate(name string) error {
 	return d.AddMigration(
 		d.version(),
 		name,
@@ -297,7 +297,7 @@ func (d *Database) Generate(name string) error {
 
 }
 
-func (d *Database) Open(path string, cfg *Config) error {
+func (d *Connection) Open(path string, cfg *Config) error {
 	err := os.MkdirAll(path, 0700)
 	if err != nil {
 		return err
@@ -345,7 +345,7 @@ func (d *Database) Open(path string, cfg *Config) error {
 	d.db = db
 	d.config = cfg
 
-	logger.Info("Database setup successfull")
+	logger.Info("Connection setup successfull")
 	return nil
 
 }
