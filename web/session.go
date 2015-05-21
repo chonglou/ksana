@@ -54,7 +54,10 @@ func (sm *SessionManager) Start(wrt http.ResponseWriter,
 		http.SetCookie(wrt, &cke)
 	} else {
 		sid, _ := url.QueryUnescape(cke.Value)
-		sess, _ = sm.provider.Read(sid)
+		sess, err = sm.provider.Read(sid)
+		if err != nil {
+			sess, _ = sm.provider.Init(sid)
+		}
 	}
 	return sess
 }

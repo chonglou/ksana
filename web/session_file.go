@@ -88,7 +88,7 @@ func (fsp *FileSessionProvider) Read(sid string) (Session, error) {
 			fsp.filename(sid)}, err
 
 	} else {
-		return fsp.Init(sid)
+		return nil, err
 	}
 
 }

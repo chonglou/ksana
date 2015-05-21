@@ -25,7 +25,7 @@ type Connection struct {
 }
 
 func (r *Connection) Open(cfg *Config) error {
-	logger.Info("Connect to redis")
+	logger.Info(fmt.Sprintf("Connect to redis %s:%d/%d", cfg.Host, cfg.Port, cfg.Db))
 
 	df := func(network, addr string) (*redis.Client, error) {
 		client, err := redis.Dial(network, addr)
@@ -80,17 +80,19 @@ func (r *Connection) Set(key string, val interface{}, expire int64) error {
 	}
 
 	return r.cmd(func(c *redis.Client) error {
-		e := c.Cmd("set", key, buf.Bytes()).Err
-
-		if e != nil {
-			return e
-		}
 		if expire > 0 {
-			return c.Cmd("expire", key, expire).Err
+			return c.Cmd("SET", key, buf.Bytes(), "EX", expire).Err
 		}
-		return nil
+		return c.Cmd("SET", key, buf.Bytes()).Err
+
 	})
 
+}
+
+func (r *Connection) Del(key string) error {
+	return r.cmd(func(c *redis.Client) error {
+		return c.Cmd("DEL", key).Err
+	})
 }
 
 func (r *Connection) Get(key string, val interface{}) error {

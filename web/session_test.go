@@ -1,10 +1,22 @@
 package ksana_web
 
 import (
+	"github.com/chonglou/ksana/redis"
+	"log"
 	"testing"
 )
 
 const sid = "test_session_sid"
+
+func TestRedisSession(t *testing.T) {
+	r := ksana_redis.Connection{}
+	err := r.Open(&ksana_redis.Config{Host: "localhost", Port: 6379, Db: 2, Pool: 12})
+	if err != nil {
+		t.Errorf("Open redis error: %v", err)
+	}
+
+	session_t(&RedisSessionProvider{redis: &r}, t)
+}
 
 func TestFileSession(t *testing.T) {
 	session_t(&FileSessionProvider{path: "/tmp/ksana/tmp/sessions"}, t)
@@ -26,7 +38,9 @@ func session_t(sp SessionProvider, t *testing.T) {
 		t.Errorf("Session read error: %v", e1)
 	}
 
-	if s1.Get(key) != val {
+	if s1.Get(key) == val {
+		log.Printf("test session pass")
+	} else {
 		t.Errorf("Want %i, Get %i", val, s1.Get(key))
 	}
 
