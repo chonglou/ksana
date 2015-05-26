@@ -73,8 +73,8 @@ func (p *migrator) Migrate() error {
 		fn := f.Name()
 		var rs *sql.Rows
 
-		rs, err = p.db.Query(fmt.Sprintf(
-			"SELECT id FROM %s WHERE version = $1", migrations_table_name), fn)
+		rs, err = p.db.Query(p.sql.Select(
+			migrations_table_name, []string{"id"}, "version = $1", "", 0, 0), fn)
 		if err != nil {
 			return err
 		}
@@ -98,8 +98,7 @@ func (p *migrator) Migrate() error {
 			if err != nil {
 				return err
 			}
-			_, err = p.db.Exec(fmt.Sprintf(
-				"INSERT INTO %s(version) VALUES($1)", migrations_table_name), fn)
+			_, err = p.db.Exec(p.sql.Insert(migrations_table_name, []string{"version"}), fn)
 			if err != nil {
 				return err
 			}
@@ -113,9 +112,9 @@ func (p *migrator) Migrate() error {
 
 func (p *migrator) Rollback() error {
 
-	rs, err := p.db.Query(
-		fmt.Sprintf("SELECT id, version FROM %s ORDER BY id DESC LIMIT 1",
-			migrations_table_name))
+	rs, err := p.db.Query(p.sql.Select(migrations_table_name,
+		[]string{"id", "version"}, "", "id DESC", 0, 1))
+
 	if err != nil {
 		return err
 	}
@@ -139,8 +138,8 @@ func (p *migrator) Rollback() error {
 		if err != nil {
 			return err
 		}
-		_, err = p.db.Exec(fmt.Sprintf(
-			"DELETE FROM %s WHERE id=$1", migrations_table_name), id)
+		_, err = p.db.Exec(p.sql.Delete(migrations_table_name, "id=$1"), id)
+
 		if err != nil {
 			return err
 		}

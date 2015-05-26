@@ -162,23 +162,34 @@ func (p *Sql) Insert(table string, columns []string) string {
 	for i := 1; i <= len(columns); i++ {
 		vs = append(vs, fmt.Sprintf("$%d", i))
 	}
-	return fmt.Sprintf("INSERT TABLE %s(%s) VALUES(%s)", table, strings.Join(columns, ", "), strings.Join(vs, ", "))
+	return p.t(fmt.Sprintf(
+		"INSERT INTO %s(%s) VALUES(%s)",
+		table,
+		strings.Join(columns, ", "),
+		strings.Join(vs, ", ")))
 }
 
-func (p *Sql) Select(table string, columns []string, where, order string, offset, limit int, args ...interface{}) string {
-	sq := p.dialect.Select(table, columns, where, order, offset, limit)
-	logger.Debug(sq)
-	return sq
+func (p *Sql) Select(table string, columns []string, where, order string, offset, limit int) string {
+	return p.t(p.dialect.Select(table, columns, where, order, offset, limit))
 }
 
 func (p *Sql) Delete(table, where string) string {
-	sq := fmt.Sprintf("DELETE FROM %s WHERE %s", table, where)
-	logger.Debug(sq)
-	return sq
+	if where != "" {
+		where = fmt.Sprintf(" WHERE %s", where)
+	}
+	return p.t(fmt.Sprintf("DELETE FROM %s%s", table, where))
 }
 
 func (p *Sql) Update(table, columns, where string) string {
-	sq := fmt.Sprintf("UPDATE %s SET %s WHERE %s", table, columns, where)
+	return p.t(fmt.Sprintf("UPDATE %s SET %s WHERE %s", table, columns, where))
+}
+
+func (p *Sql) t(sq string) string {
+	switch p.dialect.Driver() {
+	case "postgres":
+	default:
+		sq = re_sql_script.ReplaceAllString(sq, "?")
+	}
 	logger.Debug(sq)
 	return sq
 }

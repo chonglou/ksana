@@ -9,8 +9,3 @@ type databaseConfig struct {
 	Password string `json:"password"`
 	Ssl      string `json:"ssl"`
 }
-
-var SQL = Sql{}
-
-type Orm struct {
-}

@@ -104,7 +104,14 @@ func (p *pgDialect) String() string {
 	return fmt.Sprintf("%s@%s:%d/%s", p.config.User, p.config.Host, p.config.Port, p.config.Name)
 }
 
+func (p *pgDialect) Driver() string {
+	return p.config.Driver
+}
+
 func (p *pgDialect) Select(table string, columns []string, where, order string, offset, limit int) string {
+	if where != "" {
+		where = fmt.Sprintf(" WHERE %s", where)
+	}
 	if order != "" {
 		order = fmt.Sprintf(" ORDER BY %s", order)
 	}
@@ -116,8 +123,8 @@ func (p *pgDialect) Select(table string, columns []string, where, order string, 
 
 	lis := ""
 	if limit > 0 {
-		ofs = fmt.Sprintf(" LIMIT %d", offset)
+		ofs = fmt.Sprintf(" LIMIT %d", limit)
 	}
 
-	return fmt.Sprintf("SELECT %s FROM %s WHERE %s%s%s%s", strings.Join(columns, ", "), table, where, order, ofs, lis)
+	return fmt.Sprintf("SELECT %s FROM %s %s%s%s%s", strings.Join(columns, ", "), table, where, order, ofs, lis)
 }

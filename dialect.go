@@ -23,6 +23,7 @@ type Dialect interface {
 	Shell() (string, []string)
 	Setup() string
 	String() string
+	Driver() string
 
-	Select(table string, columns []string, where, order string, offset, limit int) string	
+	Select(table string, columns []string, where, order string, offset, limit int) string
 }
