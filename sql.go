@@ -1,6 +1,8 @@
 package ksana
 
 import (
+	"database/sql"
+	"errors"
 	"fmt"
 	"strings"
 )
@@ -148,4 +150,40 @@ func (p *Sql) Drop() string {
 
 func (p *Sql) Shell() (string, []string) {
 	return p.dialect.Shell()
+}
+
+//------------------------NEW---------------------------------------------------
+func openDB(cfg *databaseConfig) (*sql.DB, *Sql, error) {
+	var dlt Dialect
+	var err error
+	switch cfg.Driver {
+	case "postgres":
+		dlt = &pgDialect{config: cfg}
+	default:
+		err = errors.New("Unknown driver: " + cfg.Driver)
+	}
+	if err != nil {
+		return nil, nil, err
+	}
+
+	logger.Info("Connect to database " + dlt.String())
+	var db *sql.DB
+	db, err = sql.Open(cfg.Driver, dlt.Resource())
+	if err != nil {
+		return nil, nil, err
+	}
+
+	logger.Info("Ping database")
+	err = db.Ping()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	logger.Info("Run database setup scripts")
+	_, err = db.Exec(dlt.Setup())
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return db, &Sql{dialect: dlt}, nil
 }

@@ -47,7 +47,7 @@ func (r *Redis) Open(cfg *redisConfig) error {
 	if e != nil {
 		return e
 	}
-	logger.Info("Connection setup successfull")
+	logger.Info("Redis connection setup successfull")
 
 	r.pool = p
 	r.config = cfg
