@@ -8,7 +8,7 @@ import (
 )
 
 type pgDialect struct {
-	config *databaseConfig
+	config *dbConfig
 }
 
 func (p *pgDialect) SERIAL() string {

@@ -166,9 +166,9 @@ func (p *migrator) Generate(name string) error {
 }
 
 //-----------------NEW-----------------------
-func NewMigrator(path string, cfg *databaseConfig) (Migrator, error) {
+func NewMigrator(path string, cfg *dbConfig) (Migrator, error) {
 
-	db, sq, err := openDB(&dbCfg)
+	db, sq, err := OpenDB(&dbCfg)
 	if err != nil {
 		return nil, err
 	}

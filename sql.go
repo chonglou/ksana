@@ -195,7 +195,7 @@ func (p *Sql) t(sq string) string {
 }
 
 //------------------------NEW---------------------------------------------------
-func openDB(cfg *databaseConfig) (*sql.DB, *Sql, error) {
+func OpenDB(cfg *dbConfig) (*sql.DB, *Sql, error) {
 	var dlt Dialect
 	var err error
 	switch cfg.Driver {

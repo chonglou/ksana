@@ -9,7 +9,7 @@ install:
 
 
 clean:	
-	-rm -r /tmp/migrate/*.sql
+	-rm tmp/migrate/*.json
 
 
 

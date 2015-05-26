@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-var dbCfg = databaseConfig{
+var dbCfg = dbConfig{
 	Driver:   "postgres",
 	Host:     "localhost",
 	Port:     5432,

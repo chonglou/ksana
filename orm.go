@@ -1,6 +1,6 @@
 package ksana
 
-type databaseConfig struct {
+type dbConfig struct {
 	Driver   string `json:"driver"`
 	Host     string `json:"host"`
 	Port     int    `json:"port"`

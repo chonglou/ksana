@@ -1,28 +1,24 @@
 package ksana
 
 import (
-	orm "github.com/chonglou/ksana/orm"
-	redis "github.com/chonglou/ksana/redis"
-	utils "github.com/chonglou/ksana/utils"
-	web "github.com/chonglou/ksana/web"
 	"log"
 	"testing"
 )
 
-const config_file = "/tmp/config.json"
+const config_file = "tmp/config.json"
 
 func TestConfiguration(t *testing.T) {
 	log.Println("========== TEST CONFIGURATION ==========")
 
 	cfg1 := configuration{
 		Env:    "development",
-		Secret: utils.RandomBytes(512),
-		Web: web.Config{
+		Secret: RandomBytes(512),
+		Web: webConfig{
 			Port:   8080,
-			Cookie: utils.RandomStr(8),
+			Cookie: RandomStr(8),
 			Expire: 60 * 30},
-		Redis: redis.Config{Host: "localhost", Port: 6379, Db: 0, Pool: 12},
-		Database: orm.Config{
+		Redis: redisConfig{Host: "localhost", Port: 6379, Db: 0, Pool: 12},
+		Database: dbConfig{
 			Driver:   "postgres",
 			Host:     "localhost",
 			Port:     5432,

@@ -4,10 +4,6 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"os"
-
-	orm "github.com/chonglou/ksana/orm"
-	redis "github.com/chonglou/ksana/redis"
-	web "github.com/chonglou/ksana/web"
 )
 
 type configuration struct {
@@ -15,8 +11,8 @@ type configuration struct {
 
 	Env      string      `json:"env"`
 	Secret   []byte      `json:"secret"`
-	Web      web.Config  `json:"web"`
-	Database orm.Config  `json:"database"`
+	Web      webConfig   `json:"web"`
+	Database dbConfig    `json:"database"`
 	Redis    redisConfig `json:"redis"`
 }
 
