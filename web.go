@@ -7,6 +7,7 @@ import (
 	"html/template"
 	"net/http"
 	"net/url"
+	"os"
 	"path"
 )
 
@@ -16,8 +17,13 @@ type webConfig struct {
 	Expire int64  `json:"expire"`
 }
 
-func NewRouter(path string) Router {
-	return &router{routes: make([]Route, 0), templates: path}
+func NewRouter(path string) (Router, error) {
+
+	err := os.MkdirAll(path, 0700)
+	if err != nil {
+		return nil, err
+	}
+	return &router{routes: make([]Route, 0), templates: path}, nil
 }
 
 //--------------------request---------------------------------------------------

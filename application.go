@@ -2,11 +2,10 @@ package ksana
 
 import (
 	"bytes"
+	"database/sql"
 	"errors"
 	"flag"
 	"fmt"
-	orm "github.com/chonglou/ksana/orm"
-	web "github.com/chonglou/ksana/web"
 	"log"
 	"net/http"
 	"os"
@@ -17,13 +16,12 @@ import (
 
 const VERSION = "v20150510"
 
-var logger, _ = OpenLogger("ksana-app")
-
 type Application interface {
 	Start() error
-	Router() web.Router
-	Model() orm.Model
-	Mount(path string, engine web.Engine)
+	Router() Router
+	Model() Model
+	Migrator() Migrator
+	Mount(path string, engine Engine)
 }
 
 func New() (Application, error) {
@@ -43,7 +41,7 @@ func New() (Application, error) {
 
 	for _, a := range actions {
 
-		model, err := orm.New("db/migrate", &config.Database)
+		db, sq, err := OpenDB(&config.Database)
 		if err != nil {
 			return nil, err
 		}
@@ -54,14 +52,23 @@ func New() (Application, error) {
 			return nil, err
 		}
 
+		var rtr Router
+		rtr, err = NewRouter("app/views")
+		if err != nil {
+			return nil, err
+		}
+
 		config.file = *cfg
 		if a == *act {
 			app = &application{
-				config: &config,
-				action: *act,
-				router: web.New("app/views"),
-				model:  model,
-				redis:  &redis,
+				config:   &config,
+				action:   *act,
+				router:   rtr,
+				model:    &model{sql: sq},
+				migrator: &migrator{db: db, sql: sq, path: "db/migrate"},
+				redis:    &redis,
+				db:       db,
+				sql:      sq,
 			}
 			break
 		}
@@ -80,21 +87,28 @@ type application struct {
 	config *configuration
 	action string
 
-	router web.Router
-	model  orm.Model
-	redis  *redis.Connection
+	router   Router
+	model    Model
+	migrator Migrator
+	redis    *Redis
+	db       *sql.DB
+	sql      *Sql
 }
 
-func (app *application) Mount(mount string, e web.Engine) {
+func (app *application) Mount(mount string, e Engine) {
 	e.Router(mount, app.Router())
 }
 
-func (app *application) Model() orm.Model {
+func (app *application) Model() Model {
 	return app.model
 }
 
-func (app *application) Router() web.Router {
+func (app *application) Router() Router {
 	return app.router
+}
+
+func (app *application) Migrator() Migrator {
+	return app.migrator
 }
 
 func (app *application) Start() error {
@@ -104,15 +118,17 @@ func (app *application) Start() error {
 	case "server":
 		err = app.server()
 	case "migrate":
-		err = app.model.Db().Migrate()
+		err = app.migrator.Migrate()
 	case "rollback":
-		err = app.model.Db().Rollback()
+		err = app.migrator.Rollback()
 	case "routes":
 		app.routes()
 	case "db":
-		err = app.model.Db().Shell()
+		cmd, args := app.sql.Shell()
+		err = Shell(cmd, args...)
 	case "redis":
-		err = app.redis.Shell()
+		cmd, args := app.redis.Shell()
+		err = Shell(cmd, args...)
 	default:
 	}
 

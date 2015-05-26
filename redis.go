@@ -55,8 +55,8 @@ func (r *Redis) Open(cfg *redisConfig) error {
 
 }
 
-func (r *Redis) Shell() error {
-	return Shell("telnet", []string{r.config.Host, strconv.Itoa(r.config.Port)}...)
+func (r *Redis) Shell() (string, []string) {
+	return "telnet", []string{r.config.Host, strconv.Itoa(r.config.Port)}
 }
 
 func (r *Redis) cmd(f func(*redis.Client) error) error {
