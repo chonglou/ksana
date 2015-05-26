@@ -1,4 +1,5 @@
 package ksana
+
 import (
 	"bytes"
 	"fmt"
@@ -7,6 +8,7 @@ import (
 )
 
 type pgDialect struct {
+	config *databaseConfig
 }
 
 func (d *pgDialect) SERIAL() string {
@@ -75,19 +77,19 @@ func (d *pgDialect) DropDatabase(name string) string {
 	return fmt.Sprintf("DROP DATABASE %s", name)
 }
 
-func (d *pgDialect) Resource(cfg *Config) string {
+func (d *pgDialect) Resource() string {
 	return fmt.Sprintf(
 		"%s://%s:%s@%s:%d/%s?sslmode=%s",
-		cfg.Driver, cfg.User, cfg.Password, cfg.Host, cfg.Port, cfg.Name, cfg.Ssl)
+		d.config.Driver, d.config.User, d.config.Password, d.config.Host, d.config.Port, d.config.Name, d.config.Ssl)
 
 }
 
-func (d *pgDialect) Shell(cfg *Config) (string, []string) {
+func (d *pgDialect) Shell() (string, []string) {
 	return "psql", []string{
-		"-h", cfg.Host,
-		"-p", strconv.Itoa(cfg.Port),
-		"-d", cfg.Name,
-		"-U", cfg.User}
+		"-h", d.config.Host,
+		"-p", strconv.Itoa(d.config.Port),
+		"-d", d.config.Name,
+		"-U", d.config.User}
 }
 
 func (d *pgDialect) Setup() string {
@@ -98,8 +100,8 @@ func (d *pgDialect) Setup() string {
 	return buf.String()
 }
 
-func (d *pgDialect) String(cfg *Config) string {
-	return fmt.Sprintf("%s@%s:%d/%s", cfg.User, cfg.Host, cfg.Port, cfg.Name)
+func (d *pgDialect) String() string {
+	return fmt.Sprintf("%s@%s:%d/%s", d.config.User, d.config.Host, d.config.Port, d.config.Name)
 }
 
 func (d *pgDialect) Select(table string, columns []string, where, order string, offset, limit int) string {

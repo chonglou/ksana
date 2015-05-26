@@ -50,13 +50,13 @@ func (rsp *RedisSessionProvider) key(sid string) string {
 func (rsp *RedisSessionProvider) Init(sid string) (Session, error) {
 
 	ss := &RedisSessionStore{
-		SessionStore{
+		SessionStore: SessionStore{
 			sid:          sid,
 			value:        make(map[interface{}]interface{}, 0),
 			timeAccessed: time.Now()},
-		rsp.key(sid),
-		rsp.maxLifeTime,
-		rsp.redis}
+		key:         rsp.key(sid),
+		maxLifeTime: rsp.maxLifeTime,
+		redis:       rsp.redis}
 	err := ss.save()
 
 	return ss, err
@@ -68,13 +68,13 @@ func (rsp *RedisSessionProvider) Read(sid string) (Session, error) {
 	val := make(map[interface{}]interface{}, 0)
 	if err := rsp.redis.Get(key, &val); err == nil {
 		return &RedisSessionStore{
-			SessionStore{
+			SessionStore: SessionStore{
 				sid:          sid,
 				value:        val,
 				timeAccessed: time.Now()},
-			key,
-			rsp.maxLifeTime,
-			rsp.redis}, nil
+			key:         key,
+			maxLifeTime: rsp.maxLifeTime,
+			redis:       rsp.redis}, nil
 	} else {
 		return nil, err
 	}

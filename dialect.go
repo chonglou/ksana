@@ -19,10 +19,10 @@ type Dialect interface {
 	CreateDatabase(name string) string
 	DropDatabase(name string) string
 
-	Resource(cfg *Config) string
-	Shell(cfg *Config) (string, []string)
+	Resource() string
+	Shell() (string, []string)
 	Setup() string
-	String(cfg *Config) string
+	String() string
 
 	Select(table string, columns []string, where, order string, offset, limit int) string
 }

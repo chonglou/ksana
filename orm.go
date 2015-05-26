@@ -10,15 +10,14 @@ type databaseConfig struct {
 	Ssl      string `json:"ssl"`
 }
 
-
-
-func NewOrm(path string, cfg *Config) (Model, error) {
-	db := Connection{}
-
-	err := db.Open(path, cfg)
-	if err != nil {
-		return nil, err
-	}
-
-	return &model{db: &db}, nil
-}
+//
+// func NewOrm(path string, cfg *Config) (Model, error) {
+// 	db := Connection{}
+//
+// 	err := db.Open(path, cfg)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+//
+// 	return &model{db: &db}, nil
+// }
