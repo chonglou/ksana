@@ -1,8 +1,8 @@
 package ksana
 
 import (
-	"testing"
 	"log"
+	"testing"
 )
 
 type P struct {
