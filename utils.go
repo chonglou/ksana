@@ -5,9 +5,51 @@ import (
 	"crypto/cipher"
 	"crypto/hmac"
 	"crypto/md5"
+	"crypto/rand"
 	"crypto/sha512"
 	"encoding/base64"
+	"fmt"
+	"log"
+	"os"
+	"os/exec"
+	"syscall"
 )
+
+//-----------------------------TOOLS------------------------------------------
+
+func Shell(cmd string, args ...string) error {
+	bin, err := exec.LookPath(cmd)
+	if err != nil {
+		return err
+	}
+	return syscall.Exec(bin, append([]string{cmd}, args...), os.Environ())
+}
+
+//-----------------------------STRINGS------------------------------------------
+func Uuid() string {
+	b := RandomBytes(16)
+	return fmt.Sprintf("%x-%x-%x-%x-%x", b[0:4], b[4:6], b[6:8], b[8:10], b[10:])
+}
+
+func RandomStr(size int) string {
+	b := RandomBytes(size)
+	const dictionary = "0123456789abcdefghijklmnopqrstuvwxyz"
+	for k, v := range b {
+		b[k] = dictionary[v%byte(len(dictionary))]
+	}
+	return string(b)
+
+}
+
+func RandomBytes(size int) []byte {
+	b := make([]byte, size)
+	if _, err := rand.Read(b); err != nil {
+		log.Fatalf("error on generate random string: %v", err)
+	}
+	return b
+}
+
+//--------------------------ENCRYPTS--------------------------------------------
 
 func Md5(src []byte) [16]byte {
 	return md5.Sum(src)
