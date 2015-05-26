@@ -11,6 +11,17 @@ Ksana(A golang web framework)
     gvm use go1.4.2 --default # Using go1.4.2
     go get github.com/chonglou/ksana
 
+## Orm support types
+
+  * bool
+  * string
+  * float32
+  * float64
+  * int32
+  * int64
+  * []byte
+  * time.Time
+
 ## Examples
 
 ### Files
@@ -27,5 +38,3 @@ Ksana(A golang web framework)
     go run app.go -r routes   # show http routes
     go run app.go -r db       # connect to database
     go run app.go -r redis       # connect to redis
-
-

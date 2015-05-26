@@ -6,8 +6,6 @@ import (
 	"flag"
 	"fmt"
 	orm "github.com/chonglou/ksana/orm"
-	redis "github.com/chonglou/ksana/redis"
-	utils "github.com/chonglou/ksana/utils"
 	web "github.com/chonglou/ksana/web"
 	"log"
 	"net/http"
@@ -19,7 +17,7 @@ import (
 
 const VERSION = "v20150510"
 
-var logger, _ = utils.OpenLogger("ksana-app")
+var logger, _ = OpenLogger("ksana-app")
 
 type Application interface {
 	Start() error
@@ -50,7 +48,7 @@ func New() (Application, error) {
 			return nil, err
 		}
 
-		redis := redis.Connection{}
+		redis := Redis{}
 		err = redis.Open(&config.Redis)
 		if err != nil {
 			return nil, err

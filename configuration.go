@@ -13,11 +13,11 @@ import (
 type configuration struct {
 	file string
 
-	Env      string       `json:"env"`
-	Secret   []byte       `json:"secret"`
-	Web      web.Config   `json:"web"`
-	Database orm.Config   `json:"database"`
-	Redis    redis.Config `json:"redis"`
+	Env      string      `json:"env"`
+	Secret   []byte      `json:"secret"`
+	Web      web.Config  `json:"web"`
+	Database orm.Config  `json:"database"`
+	Redis    redisConfig `json:"redis"`
 }
 
 func writeConfig(cfg *configuration, file string) error {
