@@ -7,8 +7,8 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"time"
 	"path/filepath"
+	"time"
 )
 
 var migrations_table_name = "schema_migrations"
@@ -83,7 +83,7 @@ func (p *migrator) Migrate() error {
 		if rs.Next() {
 			log.Printf("Has %s", fn)
 		} else {
-			if filepath.Ext(fn) != ".json"{
+			if filepath.Ext(fn) != ".json" {
 				log.Printf("Ingnore file %s", fn)
 				continue
 			}
@@ -176,7 +176,7 @@ func NewMigrator(path string, cfg *databaseConfig) (Migrator, error) {
 
 	err = os.MkdirAll(path, 0700)
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
 
 	logger.Info("Check migrations schema table")
