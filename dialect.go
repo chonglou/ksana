@@ -16,8 +16,8 @@ type Dialect interface {
 	Uuid() string
 	Boolean(val bool) string
 
-	CreateDatabase(name string) string
-	DropDatabase(name string) string
+	CreateDatabase() string
+	DropDatabase() string
 
 	Resource() string
 	Shell() (string, []string)
