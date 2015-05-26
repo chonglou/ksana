@@ -12,7 +12,7 @@ var cache_value = map[string]interface{}{"aaa": "111", "bbb": 222, "ccc": 1.2}
 func TestRedisCache(t *testing.T) {
 	log.Printf("==================CACHE=============================")
 	r := Redis{}
-	err := r.Open(&redisConfig{Host: "localhost", Port: 6379, Db: 2, Pool: 12})
+	err := r.Open(&redisCfg)
 	if err != nil {
 		t.Errorf("Open redis error: %v", err)
 	}

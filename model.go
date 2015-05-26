@@ -1,7 +1,6 @@
 package ksana
 
 import (
-	"database/sql"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -17,14 +16,10 @@ type Model interface {
 	Index(bean interface{}, unique bool, fields ...string) (string, string)
 	Table(bean interface{}) (string, string, error)
 	Check(path string, bean interface{}) (string, error)
-	Select(bean interface{}, columns []string, where, order string, offset, limit int, args ...interface{}) (*sql.Rows, error)
-	Delete(bean interface{}, where string, args ...interface{}) (sql.Result, error)
-	Update(bean interface{}, columns, where string, args ...interface{}) (sql.Result, error)
-	Db() *Connection
 }
 
 type model struct {
-	db *Connection
+	sql *Sql
 }
 
 func (m *model) tags(field reflect.StructField) (map[string]string, error) {
@@ -68,16 +63,16 @@ func (m *model) column(field reflect.StructField) (string, error) {
 	case "Id":
 		switch field.Type.Kind() {
 		case reflect.Int32:
-			return m.db.Id(false), nil
+			return m.sql.Id(false), nil
 		case reflect.String:
-			return m.db.Id(true), nil
+			return m.sql.Id(true), nil
 		default:
 			return "", errors.New("Error type of id: " + field.Type.Name())
 		}
 	case "Created":
-		return m.db.Created(), nil
+		return m.sql.Created(), nil
 	case "Updated":
-		return m.db.Updated(), nil
+		return m.sql.Updated(), nil
 	default:
 		switch field.Type.Kind() {
 		case reflect.Int32:
@@ -85,16 +80,16 @@ func (m *model) column(field reflect.StructField) (string, error) {
 			if tags["default"] != "" {
 				val, _ = strconv.Atoi(tags["default"])
 			}
-			return m.db.Int32(tags["name"], tags["null"] == "true", val), nil
+			return m.sql.Int32(tags["name"], tags["null"] == "true", val), nil
 		case reflect.Int64:
 			var val int64
 			if tags["default"] != "" {
 				val, _ = strconv.ParseInt(tags["default"], 10, 64)
 			}
-			return m.db.Int64(tags["name"], tags["null"] == "true", val), nil
+			return m.sql.Int64(tags["name"], tags["null"] == "true", val), nil
 		case reflect.String:
 			size, _ := strconv.Atoi(tags["size"])
-			return m.db.String(
+			return m.sql.String(
 				tags["name"],
 				tags["fix"] == "true",
 				size,
@@ -103,20 +98,20 @@ func (m *model) column(field reflect.StructField) (string, error) {
 				tags["default"]), nil
 
 		case reflect.Bool:
-			return m.db.Bool(tags["name"], tags["default"] == "true"), nil
+			return m.sql.Bool(tags["name"], tags["default"] == "true"), nil
 
 		case reflect.Float32:
 			var val float64
 			if tags["default"] != "" {
 				val, _ = strconv.ParseFloat(tags["default"], 32)
 			}
-			return m.db.Float32(tags["name"], float32(val)), nil
+			return m.sql.Float32(tags["name"], float32(val)), nil
 		case reflect.Float64:
 			var val float64
 			if tags["default"] != "" {
 				val, _ = strconv.ParseFloat(tags["default"], 64)
 			}
-			return m.db.Float64(tags["name"], val), nil
+			return m.sql.Float64(tags["name"], val), nil
 
 		case reflect.Struct:
 			ty := fmt.Sprintf("%s.%s", field.Type.PkgPath(), field.Type.Name())
@@ -124,17 +119,17 @@ func (m *model) column(field reflect.StructField) (string, error) {
 			case "time.Time":
 				switch tags["type"] {
 				case "date":
-					return m.db.Date(
+					return m.sql.Date(
 						tags["name"],
 						tags["null"] == "true",
 						tags["default"]), nil
 				case "time":
-					return m.db.Time(
+					return m.sql.Time(
 						tags["name"],
 						tags["null"] == "true",
 						tags["default"]), nil
 				default:
-					return m.db.Datetime(
+					return m.sql.Datetime(
 						tags["name"],
 						tags["null"] == "true",
 						tags["default"]), nil
@@ -147,7 +142,7 @@ func (m *model) column(field reflect.StructField) (string, error) {
 			switch field.Type.Elem().Kind() {
 			case reflect.Uint8:
 				size, _ := strconv.Atoi(tags["size"])
-				return m.db.Bytes(
+				return m.sql.Bytes(
 					tags["name"],
 					tags["fix"] == "true",
 					size,
@@ -170,7 +165,7 @@ func (m *model) column(field reflect.StructField) (string, error) {
 func (m *model) Index(bean interface{}, unique bool, fields ...string) (string, string) {
 	table, _ := m.table(bean)
 	idx := fmt.Sprintf("%s_%s_idx", table, strings.Join(fields, "_"))
-	return m.db.AddIndex(idx, table, unique, fields...), m.db.RemoveIndex(idx)
+	return m.sql.CreateIndex(idx, table, unique, fields...), m.sql.DropIndex(idx)
 
 }
 
@@ -192,7 +187,7 @@ func (m *model) Table(bean interface{}) (string, string, error) {
 
 	}
 
-	return m.db.AddTable(table, columns...), m.db.RemoveTable(table), nil
+	return m.sql.CreateTable(table, columns...), m.sql.DropTable(table), nil
 }
 
 func (m *model) Check(path string, bean interface{}) (string, error) {
@@ -214,25 +209,4 @@ func (m *model) Check(path string, bean interface{}) (string, error) {
 
 	}
 	return "", nil
-}
-
-func (m *model) Select(bean interface{}, columns []string, where, order string, offset, limit int, args ...interface{}) (*sql.Rows, error) {
-	table, _ := m.table(bean)
-	return m.db.Select(table, columns, where, order, offset, limit, args...)
-}
-
-func (m *model) Delete(bean interface{}, where string, args ...interface{}) (sql.Result, error) {
-	table, _ := m.table(bean)
-	return m.db.Delete(table, where, args...)
-}
-
-func (m *model) Update(bean interface{}, columns, where string, args ...interface{}) (sql.Result, error) {
-	table, _ := m.table(bean)
-	return m.db.Update(table, columns, where, args...)
-}
-
-//---------others----------
-
-func (m *model) Db() *Connection {
-	return m.db
 }

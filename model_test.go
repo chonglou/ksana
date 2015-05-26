@@ -6,6 +6,15 @@ import (
 	"time"
 )
 
+var dbCfg = databaseConfig{
+	Driver:   "postgres",
+	Host:     "localhost",
+	Port:     5432,
+	Name:     "ksana_test",
+	User:     "postgres",
+	Password: "",
+	Ssl:      "disable"}
+
 type TestBean1 struct {
 	Name1 string `sql:"size=155;unique=true;long=true;null=false;index=Created,Updated;default=aaa"`
 	Name2 string `sql:"size=155;unique=true;fix=true;null=false;index=Created,Updated;default=aaa"`
@@ -41,20 +50,13 @@ type TestBean2 struct {
 }
 
 func TestModel(t *testing.T) {
-	db := Connection{}
-
-	err := db.Open(path, &cfg)
-	if err != nil {
-		t.Errorf("Error on open: %v", err)
-	}
+	log.Printf("==================MODEl=============================")
+	var m Model
+	m = &model{sql: &Sql{dialect: &pgDialect{config: &dbCfg}}}
 
 	for _, b := range []interface{}{TestBean1{}, TestBean2{}} {
-		var c, d string
-		var m Model
 
-		m = &model{db: &db}
-
-		c, d, err = m.Table(b)
+		c, d, err := m.Table(b)
 		if err == nil {
 			log.Printf("UP: %s", c)
 			log.Printf("DOWN: %s", d)

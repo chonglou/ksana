@@ -5,6 +5,8 @@ import (
 	"testing"
 )
 
+var redisCfg = redisConfig{Host: "localhost", Port: 6379, Db: 2, Pool: 12}
+
 type P struct {
 	Aaa string
 	Bbb int
@@ -15,7 +17,7 @@ func TestRedis(t *testing.T) {
 	log.Printf("==================REDIS=============================")
 
 	r := Redis{}
-	err := r.Open(&redisConfig{Host: "localhost", Port: 6379, Db: 2, Pool: 12})
+	err := r.Open(&redisCfg)
 	if err != nil {
 		t.Errorf("Open redis error: %v", err)
 	}
