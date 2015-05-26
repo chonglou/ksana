@@ -166,14 +166,9 @@ func (p *migrator) Generate(name string) error {
 }
 
 //-----------------NEW-----------------------
-func NewMigrator(path string, cfg *dbConfig) (Migrator, error) {
+func NewMigrator(path string, db *sql.DB, sq *Sql) (Migrator, error) {
 
-	db, sq, err := OpenDB(&dbCfg)
-	if err != nil {
-		return nil, err
-	}
-
-	err = os.MkdirAll(path, 0700)
+	err := os.MkdirAll(path, 0700)
 	if err != nil {
 		return nil, err
 	}

@@ -45,6 +45,11 @@ func New() (Application, error) {
 		if err != nil {
 			return nil, err
 		}
+		var mig Migrator
+		mig, err = NewMigrator("db/migrate", db, sq)
+		if err != nil {
+			return nil, err
+		}
 
 		redis := Redis{}
 		err = redis.Open(&config.Redis)
@@ -65,7 +70,7 @@ func New() (Application, error) {
 				action:   *act,
 				router:   rtr,
 				model:    &model{sql: sq},
-				migrator: &migrator{db: db, sql: sq, path: "db/migrate"},
+				migrator: mig,
 				redis:    &redis,
 				db:       db,
 				sql:      sq,

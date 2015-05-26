@@ -1,16 +1,16 @@
 {
 	"env": "development",
-	"secret": "aR6NFnsCxREGoHnmV15/1YfovvnvfdnHmWcW1I98eigSLRdG/3rtfET0Z0eXVs4RpksSEm4mgzMy02ChpNbF0A3xXdFTDmSycwmW3yy2DZwTo5Uyyp1ncXarhTilEU+c9D2MOMTaRtUyCz4hlAl6Hku1hiPwYYeye9QdcdbsiLi1ejeKtht9uqcJjDGeq8HBcYAxyLqQ4UX+QuLbfCXVkPiGqaai3wiLCrQnNJunxtaiySG4J1gc7t9OgcA0xzgjwM2q+CTnMf7a5nCFRaADWUnzIS75QBunNb0gv7cUU8/zBT/zj5uTzHWU6tVs4GT45qj4ZC6lTU2aLnqXBv0o2VFZO+pHyY10LaRT7ne22AeeygJHIJtqhPpFicwoYisbKAFmsDeXeZE67gsLZNDaVtk/XUxxAAHu+ZFYdo/n2VwmPGl001YqNmQ6wZ5g1VJ9zAOGg3bSAXisjSNxEc02NTdIXFRkbC03YtsLNuRafJ9IOx+0i2fxgPIuGCRo/EJJOUM+AHicctPDKYSwAHTBFdp3ZLQKX5rHAeJt+kLNfg8IVICmFNUvu7tt3W9FYBGziuPXiA0vneCcWUS/v64H98ztQBMpOPsE4mzwV8nurAcl7K73V6dmkHMAB+7ZlMVykBb6EZVAdANEXpQ4VHORtgMrFSsl9SvANcgHeBuXqEc=",
+	"secret": "PGGH73A0Bl/DKjBjJmIPsOXm2ku7eLthzZcLiZOxgGrezk/YexfLQpXt65O9MdCx0AFQrP3fZj6we+vFG9DX2JWdASGHbVuVREHzNEnmWbc7bRSpdKvk/MV8py7IQ75EHbihFf7myy79EENA/6ch6mEYZWXAB0Qn2B+2JQehUIBwuKn/9PRbFF2AE0Z8N/kD6locpDth29BCPvUIyYDU93bjIBHOtF4E9YqpRnWnMTgONOTkPCfDZGbBY4KCRaXsqj4nGDOMJjHUdE8tSlX0SiTwUrRnTz+GK1iwoXkyGEWFwP8VFpf+ciJ218b4gqG76qJux/g4Iv2anQcQ9ZLLj4Sl3oecX1TPkWEKSoZuxoVoEgq2l8ZImnwx1JNXFJDxPeB8jwMljhYdcWg2zqFn/uZXFfFBO9qcWoBQB2WdiUQp9sAmp62EmmlzhebNwXoy8DL+x9trB8kvmaZxmdrF7KHE0q5dH4E6wCBN9xCxj7gqZJO01F90miciK7WNeKWb3fCI9fwl1xSMtsSgrI3/vuYV1DdK5u2a7M/PbijIrAmGQb4w/eG+nP0khss5SPtIaHVAECkbpwuSFaNYoOoutiBHy5keGnYY4f2wGzxBEWkCKlysXjt9mICtNvVSGFlSjj28pNNwA0aIBpdw4jc3HuM6EScSaXQRvhbzQmNJf5Y=",
 	"web": {
 		"port": 8080,
-		"cookie": "wxnqfean",
+		"cookie": "pgz61sv1",
 		"expire": 1800
 	},
 	"database": {
 		"driver": "postgres",
 		"host": "localhost",
 		"port": 5432,
-		"name": "ksana_demo",
+		"name": "ksana",
 		"user": "postgres",
 		"password": "",
 		"ssl": "disable"
@@ -18,7 +18,7 @@
 	"redis": {
 		"host": "localhost",
 		"port": 6379,
-		"db": 6,
+		"db": 0,
 		"pool": 12
 	}
 }

@@ -3,7 +3,6 @@ package main
 import (
 	"github.com/chonglou/ksana"
 	//"github.com/chonglou/ksana/auth"
-	web "github.com/chonglou/ksana/web"
 	_ "github.com/lib/pq"
 	"log"
 	"time"
@@ -22,7 +21,7 @@ type Log1 struct {
 	Created time.Time
 }
 
-func sayHello(req *web.Request, res *web.Response) error {
+func sayHello(req *ksana.Request, res *ksana.Response) error {
 	val := make(map[string]interface{}, 0)
 	val["ok"] = true
 	val["created"] = time.Now()
@@ -41,28 +40,28 @@ func main() {
 	router := app.Router()
 
 	router.Get("/hello$", sayHello)
-	router.Any("/test$", func(req *web.Request, res *web.Response) error {
+	router.Any("/test$", func(req *ksana.Request, res *ksana.Response) error {
 		res.Text([]byte("Hello,"))
 		return nil
-	}, func(req *web.Request, res *web.Response) error {
+	}, func(req *ksana.Request, res *ksana.Response) error {
 		res.Text([]byte(" Ksans(HTTP ANY)!!!"))
 		return nil
 	})
 
-	fns := []web.Handler{
+	fns := []ksana.Handler{
 		sayHello,
-		func(req *web.Request, res *web.Response) error {
+		func(req *ksana.Request, res *ksana.Response) error {
 			res.Text([]byte("Ksana"))
 			return nil
 		},
-		func(req *web.Request, res *web.Response) error {
+		func(req *ksana.Request, res *ksana.Response) error {
 			res.Text([]byte("(HTTP RESOURCES)"))
 			return nil
 		}}
 
 	router.Resources(
 		"/tags",
-		web.Controller{
+		ksana.Controller{
 			Index:   fns,
 			Show:    fns,
 			New:     fns,
