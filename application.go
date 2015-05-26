@@ -46,7 +46,7 @@ func New() (Application, error) {
 			return nil, err
 		}
 		var mig Migrator
-		mig, err = NewMigrator("db/migrate", db, sq)
+		mig, err = NewMigrator("migrate", db, sq)
 		if err != nil {
 			return nil, err
 		}
@@ -58,7 +58,7 @@ func New() (Application, error) {
 		}
 
 		var rtr Router
-		rtr, err = NewRouter("app/views")
+		rtr, err = NewRouter("views")
 		if err != nil {
 			return nil, err
 		}
