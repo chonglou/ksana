@@ -9,7 +9,7 @@ type RedisSessionStore struct {
 	SessionStore
 	key         string
 	maxLifeTime int64
-	redis       *ksana_redis.Connection
+	redis       *Redis
 }
 
 func (rss *RedisSessionStore) save() error {
@@ -39,7 +39,7 @@ func (rss *RedisSessionStore) SessionId() string {
 }
 
 type RedisSessionProvider struct {
-	redis       *ksana_redis.Connection
+	redis       *Redis
 	maxLifeTime int64
 }
 
@@ -83,8 +83,4 @@ func (rsp *RedisSessionProvider) Read(sid string) (Session, error) {
 
 func (rsp *RedisSessionProvider) Destroy(sid string) error {
 	return rsp.redis.Del(rsp.key(sid))
-}
-
-func (rsp *RedisSessionProvider) Gc(maxLifeTime int64) {
-	logger.Info("Session gc!!")
 }

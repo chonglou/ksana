@@ -8,17 +8,14 @@ import (
 const sid = "test_session_sid"
 
 func TestRedisSession(t *testing.T) {
-	r := ksana_redis.Connection{}
-	err := r.Open(&ksana_redis.Config{Host: "localhost", Port: 6379, Db: 2, Pool: 12})
+	log.Printf("==================SESSION=============================")
+	r := Redis{}
+	err := r.Open(&redisConfig{Host: "localhost", Port: 6379, Db: 2, Pool: 12})
 	if err != nil {
 		t.Errorf("Open redis error: %v", err)
 	}
 
 	session_t(&RedisSessionProvider{redis: &r, maxLifeTime: 600}, t)
-}
-
-func TestFileSession(t *testing.T) {
-	session_t(&FileSessionProvider{path: "/tmp/ksana/tmp/sessions"}, t)
 }
 
 func session_t(sp SessionProvider, t *testing.T) {

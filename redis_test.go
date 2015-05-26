@@ -33,7 +33,10 @@ func TestRedis(t *testing.T) {
 	if err != nil {
 		t.Errorf("Open redis get: %v", err)
 	}
-	if val.Ccc != val1.Ccc {
+	if val.Ccc == val1.Ccc {
+		log.Printf("test redis pass")
+
+	} else {
 		t.Errorf("Want: %v, Get %v", val, val1)
 	}
 
