@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/chonglou/ksana"
-	//"github.com/chonglou/ksana/auth"
+	"github.com/chonglou/ksana/auth"
 	_ "github.com/lib/pq"
 	"log"
 	"time"
@@ -94,8 +94,8 @@ func main() {
 	// db.AddMigration()
 
 	//------------------Engine-----------------------------------
-	// ae := auth.AuthEngine{}
-	// app.Mount("/auth", &ae)
+	ae := kuth.AuthEngine{}
+	app.Mount("/auth", &ae)
 
 	//-------------------SERVER----------------------------
 

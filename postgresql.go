@@ -32,7 +32,7 @@ func (p *pgDialect) DOUBLE() string {
 }
 
 func (p *pgDialect) BLOB() string {
-	return "BYTES"
+	return "BYTEA"
 }
 
 func (p *pgDialect) BYTES(fix bool, size int) string {

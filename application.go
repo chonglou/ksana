@@ -102,6 +102,7 @@ type application struct {
 
 func (app *application) Mount(mount string, e Engine) {
 	e.Router(mount, app.Router())
+	e.Migration(app.Migrator(), app.Sql())
 }
 
 func (app *application) Model() Model {
@@ -110,6 +111,14 @@ func (app *application) Model() Model {
 
 func (app *application) Router() Router {
 	return app.router
+}
+
+func (app *application) Sql() *Sql {
+	return app.sql
+}
+
+func (app *application) Db() *sql.DB {
+	return app.db
 }
 
 func (app *application) Migrator() Migrator {

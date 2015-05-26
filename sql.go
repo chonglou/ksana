@@ -73,8 +73,10 @@ func (p *Sql) Date(name string, null bool, def string) string {
 	switch def {
 	case "now":
 		ds = p.dialect.CurDate()
+	case "":
+		ds = ""
 	default:
-		ds = def
+		ds = "'" + def + "'"
 	}
 	return p.column(name, "DATE", null, ds)
 }
@@ -84,8 +86,10 @@ func (p *Sql) Time(name string, null bool, def string) string {
 	switch def {
 	case "now":
 		ds = p.dialect.CurTime()
+	case "":
+		ds = ""
 	default:
-		ds = def
+		ds = "'" + def + "'"
 	}
 	return p.column(name, "TIME", null, ds)
 }
@@ -95,8 +99,10 @@ func (p *Sql) Datetime(name string, null bool, def string) string {
 	switch def {
 	case "now":
 		ds = p.dialect.Now()
+	case "":
+		ds = ""
 	default:
-		ds = def
+		ds = "'" + def + "'"
 	}
 	return p.column(name, p.dialect.DATETIME(), null, ds)
 }
@@ -130,12 +136,19 @@ func (p *Sql) DropTable(table string) string {
 }
 
 func (p *Sql) CreateIndex(name, table string, unique bool, columns ...string) string {
+	if name == "" {
+		name = fmt.Sprintf("%s_%s_idx", table, strings.Join(columns, "_"))
+	}
 	idx := "INDEX"
 	if unique {
 		idx = "UNIQUE INDEX"
 	}
 	return fmt.Sprintf(
-		"CREATE %s %s ON %s (%s);", idx, name, table, strings.Join(columns, ", "))
+		"CREATE %s %s ON %s (%s);",
+		idx,
+		name,
+		table,
+		strings.Join(columns, ", "))
 
 }
 
