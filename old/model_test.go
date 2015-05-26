@@ -1,70 +1,65 @@
 package ksana
 
 import (
-	"database/sql"
-	_ "github.com/lib/pq"
 	"log"
 	"testing"
 	"time"
 )
 
 type TestBean1 struct {
-	Bean
-
 	Name1 string `sql:"size=155;unique=true;long=true;null=false;index=Created,Updated;default=aaa"`
 	Name2 string `sql:"size=155;unique=true;fix=true;null=false;index=Created,Updated;default=aaa"`
 
-	Uid     string    `sql:"type=uuid"`
-	Time    time.Time `sql:"type=time"`
-	Date    time.Time `sql:"type=date"`
-	Created time.Time `sql:"type=created"`
-	Updated time.Time `sql:"type=updated"`
+	Id       string
+	Time     time.Time `sql:"type=time"`
+	Date     time.Time `sql:"type=date"`
+	Datetime time.Time `sql:"type=datetime"`
+
+	Created time.Time
+	Updated time.Time
 }
 
 type TestBean2 struct {
-	Bean
+	Id int32
 
-	Id int `sql:"type=serial"`
+	//Int8    int8
+	Int32 int32
+	Int64 int64
+	//Uint8 uint8
+	// Uint32    uint32
+	// Uint64    uint64
 
-	Int    int
-	Int8   int8
-	Int32  int32
-	Int64  int64
-	Uint   uint
-	Rune   rune
-	Byte   byte
-	String string `sql:"size=255"`
-	Enable bool
-	Float  float32
-	Double float64
+	Rune rune
+	//Byte    byte
+	String  string `sql:"size=255"`
+	Boolean bool
+	Float   float32
+	Double  float64
+	Bytes   []byte
+
+	Versions []string `sql:"-"`
 }
 
 func TestModel(t *testing.T) {
-	log.Println("============== TEST MODEL ======================")
+	db := Connection{}
 
-	db, err := sql.Open("postgres", "postgres://postgres@localhost/ksana_t?sslmode=disable")
-
+	err := db.Open(path, &cfg)
 	if err != nil {
-		t.Errorf("Open database: %v", err)
+		t.Errorf("Error on open: %v", err)
 	}
-	defer db.Close()
-	var m Model
-	m = &model{path: "/tmp/migrate", db: db}
 
-	for _, b := range []Bean{TestBean1{}, TestBean2{}} {
-		err := m.Register(b)
-		if err != nil {
-			t.Errorf("Error on add bean: %v", err)
+	for _, b := range []interface{}{TestBean1{}, TestBean2{}} {
+		var c, d string
+		var m Model
+
+		m = &model{db: &db}
+
+		c, d, err = m.Table(b)
+		if err == nil {
+			log.Printf("UP: %s", c)
+			log.Printf("DOWN: %s", d)
+		} else {
+			t.Errorf("Error on register: %v", err)
 		}
-
-	}
-
-	err = m.Migrate()
-	if err != nil {
-		t.Errorf("Error on add bean: %v", err)
-	}
-	err = m.Rollback()
-	if err != nil {
-		t.Errorf("Error on add bean: %v", err)
 	}
 }

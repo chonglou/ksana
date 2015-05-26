@@ -1,73 +1,39 @@
 package ksana
 
 import (
-	"encoding/xml"
+	"encoding/json"
 	"io/ioutil"
 	"os"
-	"strconv"
+
+	orm "github.com/chonglou/ksana/orm"
+	redis "github.com/chonglou/ksana/redis"
+	web "github.com/chonglou/ksana/web"
 )
 
-type property struct {
-	Name  string `xml:"name,attr"`
-	Value string `xml:"value,attr"`
-}
-
-type bean struct {
-	Name       string     `xml:"name,attr"`
-	Class      string     `xml:"class,attr"`
-	Properties []property `xml:"property"`
-}
-
-func (b *bean) getString(name string, def string) string {
-	for _, p := range b.Properties {
-		if p.Name == name {
-			return p.Value
-		}
-	}
-	return def
-}
-
-func (b *bean) getInt(name string, def int) int {
-	for _, p := range b.Properties {
-		if p.Name == name {
-			i, err := strconv.Atoi(p.Value)
-			if err == nil {
-				return i
-			}
-			break
-		}
-	}
-	return def
-}
-
 type configuration struct {
-	XMLName xml.Name `xml:"ksana"`
+	file string
 
-	Name string `xml:"name,attr"`
-	Mode string `xml:"mode,attr"`
-
-	Port int `xml:"port,attr"`
-
-	Beans []bean `xml:"bean"`
+	Env      string      `json:"env"`
+	Secret   []byte      `json:"secret"`
+	Web      web.Config  `json:"web"`
+	Database orm.Config  `json:"database"`
+	Redis    redisConfig `json:"redis"`
 }
 
-//------------------------------------------------------------------------------
-func loadConfiguration(file string, cfg *configuration) error {
-	xf, err := os.Open(file)
+func writeConfig(cfg *configuration, file string) error {
+	cj, err := json.MarshalIndent(cfg, "", "\t")
 	if err != nil {
 		return err
 	}
-	defer xf.Close()
+	return ioutil.WriteFile(file, cj, 0600)
+}
 
-	var data []byte
-	data, err = ioutil.ReadAll(xf)
-	if err != nil {
-		return err
+func readConfig(cfg *configuration, file string) error {
+	f, e := os.Open(file)
+	if e != nil {
+		return e
 	}
+	defer f.Close()
 
-	err = xml.Unmarshal(data, cfg)
-	if err != nil {
-		return err
-	}
-	return nil
+	return json.NewDecoder(f).Decode(cfg)
 }
