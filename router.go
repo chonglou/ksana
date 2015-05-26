@@ -2,7 +2,6 @@ package ksana
 
 import (
 	"bytes"
-	"container/list"
 	"fmt"
 	"log"
 	"net/http"
@@ -86,7 +85,7 @@ type Router interface {
 
 type router struct {
 	templates string
-	routes    *list.List
+	routes    []Route
 }
 
 func (r *router) Get(pat string, hs ...Handler) {
@@ -142,15 +141,16 @@ func (r *router) add(mtd, pat string, hs []Handler) {
 		}
 	}
 
-	r.routes.PushBack(&route{
+	r.routes = append(r.routes, &route{
 		method:   mtd,
 		regex:    regexp.MustCompile(pat),
 		handlers: hs})
+
 }
 
 func (r *router) Status(buf *bytes.Buffer) {
-	for it := r.routes.Front(); it != nil; it = it.Next() {
-		it.Value.(Route).Status(buf)
+	for _, r := range r.routes {
+		r.Status(buf)
 	}
 }
 
@@ -160,8 +160,7 @@ func (r *router) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 
 	logger.Info(fmt.Sprintf("%s %s", req.Method(), req.Path()))
 
-	for it := r.routes.Front(); it != nil; it = it.Next() {
-		rt := it.Value.(Route)
+	for _, rt := range r.routes {
 		if req.Match(rt) {
 			logger.Debug("MATCH WITH " + rt.Pattern())
 			req.Parse(rt)

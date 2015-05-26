@@ -19,6 +19,7 @@ func Tbbb(req *Request, res *Response) error {
 }
 
 func TestRegexpMux(t *testing.T) {
+	log.Printf("==================ROUTER=============================")
 	// re := regexp.MustCompile("(?P<first>[a-zA-Z]+) (?P<last>[a-zA-Z]+)")
 	// log.Println(re.MatchString("Alan Turing "))
 	// log.Printf("Result: %q\n", re.SubexpNames())
