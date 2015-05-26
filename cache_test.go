@@ -7,21 +7,17 @@ import (
 
 const cache_key = "test_cache"
 
-var cache_value = map[string]interface{}{"aaa": "111", "bbb": 222, "ccc": 1.2} //[]string{"aaa", "bbb", "ccc"}
+var cache_value = map[string]interface{}{"aaa": "111", "bbb": 222, "ccc": 1.2}
 
 func TestRedisCache(t *testing.T) {
-
-	r := ksana_redis.Connection{}
-	err := r.Open(&ksana_redis.Config{Host: "localhost", Port: 6379, Db: 2, Pool: 12})
+	log.Printf("==================CACHE=============================")
+	r := Redis{}
+	err := r.Open(&redisConfig{Host: "localhost", Port: 6379, Db: 2, Pool: 12})
 	if err != nil {
 		t.Errorf("Open redis error: %v", err)
 	}
 
 	cache_t(&RedisCacheManager{redis: &r}, t)
-}
-
-func TestFileCache(t *testing.T) {
-	cache_t(&FileCacheManager{path: "/tmp/ksana/tmp/cache"}, t)
 }
 
 func cache_t(cm CacheManager, t *testing.T) {
