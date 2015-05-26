@@ -17,7 +17,7 @@ type redisConfig struct {
 }
 
 type Redis struct {
-	config *Config
+	config *redisConfig
 	pool   *pool.Pool
 }
 
@@ -56,7 +56,7 @@ func (r *Redis) Open(cfg *redisConfig) error {
 }
 
 func (r *Redis) Shell() error {
-	return utils.Shell("telnet", []string{r.config.Host, strconv.Itoa(r.config.Port)}...)
+	return Shell("telnet", []string{r.config.Host, strconv.Itoa(r.config.Port)}...)
 }
 
 func (r *Redis) cmd(f func(*redis.Client) error) error {

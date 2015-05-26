@@ -2,6 +2,7 @@ package ksana
 
 import (
 	"testing"
+	"log"
 )
 
 type P struct {
@@ -11,6 +12,8 @@ type P struct {
 }
 
 func TestRedis(t *testing.T) {
+	log.Printf("==================REDIS=============================")
+
 	r := Redis{}
 	err := r.Open(&redisConfig{Host: "localhost", Port: 6379, Db: 2, Pool: 12})
 	if err != nil {

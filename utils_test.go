@@ -8,6 +8,7 @@ import (
 const hello = "Hello, KSANA!!!"
 
 func TestUuid(t *testing.T) {
+	log.Printf("==================UTILS=============================")
 	log.Printf("UUID: %s\t%s", Uuid(), Uuid())
 }
 
