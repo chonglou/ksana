@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-var re_sql_file = regexp.MustCompile("(?P<date>[\\d]{14})_(?P<table>[_a-zA-Z0-9]+).sql$")
+var re_sql_file = regexp.MustCompile("(?P<date>[\\d]{14})_(?P<table>[_a-zA-Z0-9]+).json$")
 
 type Model interface {
 	Index(bean interface{}, unique bool, fields ...string) (string, string)

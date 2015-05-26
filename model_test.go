@@ -50,7 +50,7 @@ type TestBean2 struct {
 }
 
 func TestModel(t *testing.T) {
-	log.Printf("==================MODEl=============================")
+	log.Printf("==================MODEL=============================")
 	var m Model
 	m = &model{sql: &Sql{dialect: &pgDialect{config: &dbCfg}}}
 

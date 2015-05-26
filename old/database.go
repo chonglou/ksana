@@ -77,7 +77,7 @@ func (d *Connection) Open(path string, cfg *Config) error {
 		return err
 	}
 
-	
+
 
 	d.db = db
 	d.config = cfg
@@ -87,24 +87,6 @@ func (d *Connection) Open(path string, cfg *Config) error {
 
 }
 
-//curd
-func (d *Connection) Select(table string, columns []string, where, order string, offset, limit int, args ...interface{}) (*sql.Rows, error) {
-	sq := d.dialect.Select(table, columns, where, order, offset, limit)
-	logger.Debug(sq)
-	return d.db.Query(sq, args...)
-}
-
-func (d *Connection) Delete(table, where string, args ...interface{}) (sql.Result, error) {
-	sq := fmt.Sprintf("DELETE FROM %s WHERE %s", table, where)
-	logger.Debug(sq)
-	return d.db.Exec(sq, args...)
-}
-
-func (d *Connection) Update(table, columns, where string, args ...interface{}) (sql.Result, error) {
-	sq := fmt.Sprintf("UPDATE %s SET %s WHERE %s", table, columns, where)
-	logger.Debug(sq)
-	return d.db.Exec(sq, args...)
-}
 
 //-----------------------------------------------------------------------------
 

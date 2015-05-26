@@ -24,5 +24,5 @@ type Dialect interface {
 	Setup() string
 	String() string
 
-	Select(table string, columns []string, where, order string, offset, limit int) string
+	Select(table string, columns []string, where, order string, offset, limit int) string	
 }

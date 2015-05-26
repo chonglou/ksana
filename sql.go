@@ -4,8 +4,11 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"regexp"
 	"strings"
 )
+
+var re_sql_script = regexp.MustCompile("\\$[\\d]+")
 
 type Sql struct {
 	dialect Dialect
@@ -150,6 +153,34 @@ func (p *Sql) Drop() string {
 
 func (p *Sql) Shell() (string, []string) {
 	return p.dialect.Shell()
+}
+
+//-----------------------curd---------------------------------------------------
+
+func (p *Sql) Insert(table string, columns []string) string {
+	vs := make([]string, 0)
+	for i := 1; i <= len(columns); i++ {
+		vs = append(vs, fmt.Sprintf("$%d", i))
+	}
+	return fmt.Sprintf("INSERT TABLE %s(%s) VALUES(%s)", table, strings.Join(columns, ", "), strings.Join(vs, ", "))
+}
+
+func (p *Sql) Select(table string, columns []string, where, order string, offset, limit int, args ...interface{}) string {
+	sq := p.dialect.Select(table, columns, where, order, offset, limit)
+	logger.Debug(sq)
+	return sq
+}
+
+func (p *Sql) Delete(table, where string) string {
+	sq := fmt.Sprintf("DELETE FROM %s WHERE %s", table, where)
+	logger.Debug(sq)
+	return sq
+}
+
+func (p *Sql) Update(table, columns, where string) string {
+	sq := fmt.Sprintf("UPDATE %s SET %s WHERE %s", table, columns, where)
+	logger.Debug(sq)
+	return sq
 }
 
 //------------------------NEW---------------------------------------------------
