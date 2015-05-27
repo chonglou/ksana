@@ -1,0 +1,24 @@
+{
+	"env": "development",
+	"secret": "vOZntz2lMGKuwAAs0RZyoAxr8iMtj4zO8m5tIXb/yQQr9MO388Sdyym8e80goJOb2ZU7ARJVp7xTZnYR7pc0lipWknQ0/CV+WN8lCANaj1c0/6LSxIQ0kO9ak30uZlXTxkx6gUtEZik2LartjmS2AaOcJ5hF7vM/nKRZuvnN8EpUUvvgk3TW2PSpmZ3p4T5+F+lqA/Bm07PDvUEPmW734ACnJ1hxVyiFJKTMCqjwF6mIW7y+oG2HrjyoW4Vzao+oaAQKzs6dE+VdVKJtj6D97cHEESv85qhsI8d9NJdHbOuUIi2sYeLpb/YkORl0ojNSKQWG2S7M9yk+SxEpPQgliR+OXDO9dmIWUsaK03+1sPvIcLE4fQARuI2RnwcuJyfAMsIT0Oe5y/FRIddiXYxyaXVIIDYRjOcDHTKzEyRbpoOwqres7Z8zMnwT3d/f4ZfI34QBUyXjt5cVngya4zehzb1PiNJDSPRwK1TlQ+gvS/KYZ72PM8V3EliEJPcrfdgjSiyLvoDsq2ePAtZj6h0vGZrydasYyBxDjnpGfHA7WUEqqeD6n/4BBiCmlB0b4yPDIMHSNWHlJVvB2n8krm0c4XD1wsZQsvZERhNJg0d98VTwOXgfJdQl4WbmonATMHeJBjPEMkDWQ073HiaaEAMiMCtx36O9EFHJd0+2z1tQYHI=",
+	"web": {
+		"port": 8080,
+		"cookie": "t28eurdz",
+		"expire": 1800
+	},
+	"database": {
+		"driver": "postgres",
+		"host": "localhost",
+		"port": 5432,
+		"name": "ksana_pf",
+		"user": "postgres",
+		"password": "",
+		"ssl": "disable"
+	},
+	"redis": {
+		"host": "localhost",
+		"port": 6379,
+		"db": 0,
+		"pool": 12
+	}
+}
