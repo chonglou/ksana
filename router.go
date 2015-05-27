@@ -200,7 +200,8 @@ func (r *router) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 			})
 
 			if err != nil {
-				http.Error(writer, err.Error(), http.StatusInternalServerError)
+				logger.Err(err.Error())
+				//http.Error(writer, err.Error(), http.StatusInternalServerError)
 			}
 			return
 		}

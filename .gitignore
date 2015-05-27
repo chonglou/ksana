@@ -1,2 +1,4 @@
 *.swp
 *.un~
+/public
+/assets/bower_components
