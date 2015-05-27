@@ -37,7 +37,7 @@ func session_t(sp SessionProvider, t *testing.T) {
 	if s1.Get(key) == val {
 		log.Printf("test session pass")
 	} else {
-		t.Errorf("Want %i, Get %i", val, s1.Get(key))
+		t.Errorf("Want %d, Get %d", val, s1.Get(key))
 	}
 
 }

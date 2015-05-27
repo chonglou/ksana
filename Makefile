@@ -12,7 +12,13 @@ clean:
 	-rm tmp/migrate/*.json
 
 
+vet:
+	go vet *.go 
+	go vet examples/*.go 
+	go vet auth/*.go
 
 
 fmt:
-	gofmt -w *.go examples/*.go auth/*.go
+	go fmt *.go 
+	go fmt examples/*.go 
+	go fmt auth/*.go
