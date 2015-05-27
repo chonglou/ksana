@@ -1,12 +1,12 @@
 package main
 
 import (
+	"errors"
 	"github.com/chonglou/ksana"
 	"github.com/chonglou/ksana/auth"
 	_ "github.com/lib/pq"
 	"log"
 	"time"
-	//"bytes"
 )
 
 type User1 struct {
@@ -21,9 +21,10 @@ type Log1 struct {
 	Created time.Time
 }
 
-func sayHello(req *ksana.Request, res *ksana.Response) error {
+func sayHello(sql *ksana.Sql, req *ksana.Request, res *ksana.Response) error {
 	val := make(map[string]interface{}, 0)
 	val["ok"] = true
+	val["sql"] = sql.Create()
 	val["created"] = time.Now()
 	res.Json(val)
 	return nil
@@ -45,6 +46,14 @@ func main() {
 		return nil
 	}, func(req *ksana.Request, res *ksana.Response) error {
 		res.Text([]byte(" Ksans(HTTP ANY)!!!"))
+		return nil
+	})
+
+	router.Get("/errors$", func(req *ksana.Request, res *ksana.Response) error {
+		res.Text([]byte("Error,111!"))
+		return errors.New("get error")
+	}, func(req *ksana.Request, res *ksana.Response) error {
+		res.Text([]byte("Ingnore !!!"))
 		return nil
 	})
 

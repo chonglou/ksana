@@ -2,6 +2,7 @@ package ksana
 
 import (
 	//"fmt"
+	"errors"
 	"log"
 	"reflect"
 	"regexp"
@@ -21,7 +22,11 @@ func Tbbb(req *Request, res *Response) error {
 func TestRefletc(t *testing.T) {
 	log.Printf("================REFLECT===============")
 
+	log.Printf("Request type: " + reflect.TypeOf((*Request)(nil)).String())
+
+	log.Printf("type of error: %s", reflect.TypeOf(errors.New("aaa")))
 	f := reflect.TypeOf(Tbbb)
+
 	log.Printf("Num In: %d, NumOut: %d", f.NumIn(), f.NumOut())
 	for i := 0; i < f.NumIn(); i++ {
 		log.Printf("Arg %d: %s", i, f.In(i).String())

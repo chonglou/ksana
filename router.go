@@ -2,6 +2,7 @@ package ksana
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -11,7 +12,7 @@ import (
 	"runtime"
 )
 
-type Handler func(*Request, *Response) error
+type Handler interface{}
 
 type Controller struct {
 	Index   []Handler
@@ -136,9 +137,11 @@ func (r *router) add(mtd, pat string, hs []Handler) {
 		// r.ctx.Logger.Debug(fmt.Sprintf(
 		// 	"%s %s %v, %v",
 		// 	mtd, pat, reflect.TypeOf(h), reflect.TypeOf(h).Kind()))
-		if reflect.TypeOf(h).Kind() != reflect.Func {
+		ht := reflect.TypeOf(h)
+		if ht.Kind() != reflect.Func || ht.NumOut() != 1 || ht.Out(0) != reflect.TypeOf((*error)(nil)).Elem() {
 			log.Fatalf("ksana handler must be a callable func")
 		}
+
 	}
 
 	r.routes = append(r.routes, &route{
@@ -166,7 +169,34 @@ func (r *router) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 			req.Parse(rt)
 			err := rt.Call(func(i int, h Handler) error {
 				logger.Debug(fmt.Sprintf("CALL %v %v", i, h))
-				return h(&req, &res)
+
+				ht := reflect.TypeOf(h)
+				ins := make([]reflect.Value, 0)
+				for i := 0; i < ht.NumIn(); i++ {
+					var pm interface{}
+					ft := ht.In(i)
+					switch ft {
+					case reflect.TypeOf((*Request)(nil)):
+						pm = &req
+					case reflect.TypeOf((*Response)(nil)):
+						pm = &res
+					default:
+						val, ok := Get(ft)
+						if !ok {
+							return errors.New("Unknown arg type: " + ft.String())
+						}
+						pm = val
+
+					}
+					ins = append(ins, reflect.ValueOf(pm))
+				}
+				rv := reflect.ValueOf(h).Call(ins)[0].Interface()
+				if rv == nil {
+					return nil
+				}
+				return rv.(error)
+				//return h(&req, &res)
+
 			})
 
 			if err != nil {
