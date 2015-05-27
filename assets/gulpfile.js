@@ -8,6 +8,7 @@ var sourcemaps = require('gulp-sourcemaps');
 var htmlmin = require('gulp-htmlmin');
 // var webserver = require('gulp-webserver');
 var connect = require('gulp-connect');
+var revappend = require('gulp-version-append');
 var del = require('del');
 
 var paths = {
@@ -38,6 +39,7 @@ gulp.task('images', ['clean'], function() {
 
 gulp.task('templates', function() {
   return gulp.src(paths.templates)
+    .pipe(revappend(['html', 'js', 'css']))
     .pipe(htmlmin({collapseWhitespace: true}))
     .pipe(gulp.dest('build'))
 
@@ -73,4 +75,6 @@ gulp.task('server', function() {
   //   }));
 });
 
-gulp.task('default', ['clean', 'watch', 'templates', 'scripts', 'images', 'server']);
+gulp.task('default', ['watch', 'templates', 'scripts', 'images', 'server']);
+
+gulp.task('build', ['templates', 'scripts', 'images']);

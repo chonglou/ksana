@@ -1,6 +1,6 @@
 {
   "name": "ksana",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "homepage": "https://github.com/chonglou/ksana",
   "authors": [
     "Jitang Zheng <jitang.zheng@gmail.com>"
@@ -34,6 +34,7 @@
     "gulp-sourcemaps": "latest",
     "gulp-connect": "latest",
     "gulp-htmlmin": "latest",
+    "gulp-version-append": "latest",
     "del": "latest"
   },
   "ignore": [
