@@ -18,6 +18,16 @@ func Tbbb(req *Request, res *Response) error {
 	return nil
 }
 
+func TestRefletc(t *testing.T) {
+	log.Printf("================REFLECT===============")
+
+	f := reflect.TypeOf(Tbbb)
+	log.Printf("Num In: %d, NumOut: %d", f.NumIn(), f.NumOut())
+	for i := 0; i < f.NumIn(); i++ {
+		log.Printf("Arg %d: %s", i, f.In(i).String())
+	}
+}
+
 func TestRegexpMux(t *testing.T) {
 	log.Printf("==================ROUTER=============================")
 	// re := regexp.MustCompile("(?P<first>[a-zA-Z]+) (?P<last>[a-zA-Z]+)")

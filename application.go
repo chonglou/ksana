@@ -65,6 +65,10 @@ func New() (Application, error) {
 
 		config.file = *cfg
 		if a == *act {
+			for _, b:=range []interface{}{db, sq, &redis}{
+				Map(b)
+			}
+			
 			app = &application{
 				config:   &config,
 				action:   *act,
