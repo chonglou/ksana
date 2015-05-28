@@ -14,14 +14,17 @@ var pkginfo = require('./package.json')
 var paths = {
   public: 'public',
   scripts: 'javascripts/**/*.coffee',
-  styles: [
-    'node_modules/bootstrap/dist/css/bootstrap.css',
-    'stylesheets/**/*.css'
-  ],
+  styles: 'stylesheets/**/*.css',
   templates: 'templates/**/*.html',
-  images: [
+  images: 'images/**/*',
+  third: [
+    'node_modules/jquery/dist/jquery.min.js',
+    'node_modules/bootstrap/dist/css/bootstrap.min.css',
+    'node_modules/bootstrap/dist/js/bootstrap.min.js',
     'node_modules/bootstrap/dist/fonts/*',
-    'images/**/*'
+    'node_modules/famfamfam-flags/dist/**/*',
+    'node_modules/famfamfam-silk/dist/**/*',
+    'node_modules/moment/min/moment-with-locales.min.js'
   ]
 };
 
@@ -40,12 +43,13 @@ gulp.task('styles', function() {
 });
 
 gulp.task('3rd', function() {
-  var pkgs = [];
-  for(var n in pkginfo.dependencies){
-    pkgs.push('node_modules/'+n+"/**/*");
-  }
 
-   return gulp.src(pkgs, {"base":"."})
+  //var pkgs = [];
+  // for(var n in pkginfo.dependencies){
+  //   pkgs.push('node_modules/'+n+"/**/*");
+  // }
+
+   return gulp.src(paths.third, {"base":"."})
      .pipe(gulp.dest(paths.public));
 });
 
