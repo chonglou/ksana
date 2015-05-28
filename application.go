@@ -25,7 +25,15 @@ type Application interface {
 }
 
 func New() (Application, error) {
-	actions := []string{"server", "migrate", "rollback", "routes", "db", "redis", "nginx"}
+	actions := []string{
+		"server",
+		"migrate",
+		"rollback",
+		"routes",
+		"db",
+		"redis",
+		"nginx",
+		"ssl"}
 	cfg := flag.String("c", "config.json", "configuration file name")
 	act := flag.String("r", "server", "running: "+strings.Join(actions, " | "))
 	flag.Parse()
@@ -149,10 +157,33 @@ func (app *application) Start() error {
 		err = Shell(cmd, args...)
 	case "nginx":
 		app.nginx()
+	case "ssl":
+		app.openssl()
 	default:
 	}
 
 	return err
+}
+
+func (app *application) openssl() {
+	var buf bytes.Buffer
+	fmt.Fprintf(&buf,
+		`
+openssl genrsa -out root/root-key.pem 2048
+openssl req -new -key root/root-key.pem -out root/root-req.csr -text
+openssl x509 -req -in root/root-req.csr -out root/root-cert.pem -sha512 -signkey root/root-key.pem -days 3650 -text -extfile /etc/ssl/openssl.cnf -extensions v3_ca
+
+openssl genrsa -out server/server-key.pem 2048
+openssl req -new -key server/server-key.pem -out server/server-req.csr -text
+openssl x509 -req -in server/server-req.csr -CA root/root-cert.pem -CAkey root/root-key.pem -CAcreateserial -days 3650 -out server/server-cert.pem -text
+
+openssl verify -CAfile root/root-cert.pem server/server-cert.pem
+openssl rsa -noout -text -in server-key.pem
+openssl req -noout -text -in server-req.csr
+openssl x509 -noout -text -in server-cert.pem
+		`)
+	fmt.Fprintf(&buf, "\n")
+	buf.WriteTo(os.Stdout)
 }
 
 func (app *application) nginx() {
