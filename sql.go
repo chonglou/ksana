@@ -182,6 +182,13 @@ func (p *Sql) Insert(table string, columns []string) string {
 		strings.Join(vs, ", ")))
 }
 
+func (p *Sql) Count(table, where string) string{
+	if where != "" {
+		where = "WHERE " + where
+	}
+	return fmt.Sprintf("SELECT COUNT(*) FROM %s%s", table, where)
+}
+
 func (p *Sql) Select(table string, columns []string, where, order string, offset, limit int) string {
 	return p.t(p.dialect.Select(table, columns, where, order, offset, limit))
 }

@@ -181,8 +181,8 @@ func (r *router) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 					case reflect.TypeOf((*Response)(nil)):
 						pm = &res
 					default:
-						val, ok := Get(ft)
-						if !ok {
+						val, err := Get(ft)
+						if err!=nil {
 							return errors.New("Unknown arg type: " + ft.String())
 						}
 						pm = val

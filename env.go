@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/gob"
 	"reflect"
+	"errors"
 )
 
 var logger, _ = OpenLogger("ksana")
@@ -16,10 +17,14 @@ func Map(bean interface{}) {
 	beans[t] = bean
 }
 
-func Get(tp reflect.Type) (interface{}, bool) {
+func Get(tp reflect.Type) (interface{}, error) {
 	val, ok := beans[tp]
-	return val, ok
+	if ok{
+		return val, nil
+	}
+	return nil, errors.New("Unknown bean: "+tp.String())
 }
+
 
 func Obj2bit(obj interface{}) ([]byte, error) {
 	var buf bytes.Buffer

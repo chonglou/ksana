@@ -39,7 +39,7 @@ func RegisterFm(req *ksana.Request, res *ksana.Response, sq *ksana.Sql, db *sql.
 		fm.Submit()
 		fm.Reset()
 		var agree string
-		if err := Get("site.agreement", &agree); err == nil && agree != "" {
+		if err := dao.Get("site.agreement", &agree, false); err == nil && agree != "" {
 			fm.Add(ksana.Field{Id: "agree", Type: "checkbox", Value: true, Label: "user.agree", Text: agree})
 		}
 
