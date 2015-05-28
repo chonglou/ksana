@@ -9,13 +9,10 @@ var minifyCss = require('gulp-minify-css');
 var connect = require('gulp-connect');
 var revappend = require('gulp-version-append');
 var del = require('del');
+var pkginfo = require('./package.json')
 
 var paths = {
   public: 'public',
-  scripts_3rd: [
-    'node_modules/jquery/dist/jquery.js',
-    'node_modules/bootstrap/dist/js/bootstrap.js'
-  ],
   scripts: 'javascripts/**/*.coffee',
   styles: [
     'node_modules/bootstrap/dist/css/bootstrap.css',
@@ -42,13 +39,14 @@ gulp.task('styles', function() {
     .pipe(gulp.dest(paths.public));
 });
 
-gulp.task('scripts_3rd', function() {
-  return gulp.src(paths.scripts_3rd)
-    .pipe(sourcemaps.init())
-    .pipe(uglify())
-    .pipe(concat('3rd.min.js'))
-    .pipe(sourcemaps.write())
-    .pipe(gulp.dest(paths.public));
+gulp.task('3rd', function() {
+  var pkgs = [];
+  for(var n in pkginfo.dependencies){
+    pkgs.push('node_modules/'+n+"/**/*");
+  }
+
+   return gulp.src(pkgs, {"base":"."})
+     .pipe(gulp.dest(paths.public));
 });
 
 gulp.task('scripts', function() {
@@ -56,7 +54,7 @@ gulp.task('scripts', function() {
     .pipe(sourcemaps.init())
     .pipe(coffee())
     .pipe(uglify())
-    .pipe(concat('main.min.js'))
+    .pipe(concat('all.min.js'))
     .pipe(sourcemaps.write())
     .pipe(gulp.dest(paths.public));
 });
@@ -92,4 +90,4 @@ gulp.task('server', function() {
 
 gulp.task('default', ['watch', 'build']);
 
-gulp.task('build', ['templates', 'scripts', 'scripts_3rd', 'styles', 'images']);
+gulp.task('build', ['templates', 'scripts', '3rd', 'styles', 'images']);
