@@ -40,7 +40,7 @@ func main() {
 	//---------------HTTP----------------------------------------------
 	router := app.Router()
 
-	router.Get("/hello$", sayHello)
+	router.Get("^/hello$", sayHello)
 	router.Any("/test$", func(req *ksana.Request, res *ksana.Response) error {
 		res.Text([]byte("Hello,"))
 		return nil
@@ -104,7 +104,7 @@ func main() {
 
 	//------------------Engine-----------------------------------
 	ae := kuth.AuthEngine{}
-	app.Mount("/auth", &ae)
+	app.Mount("auth", &ae)
 
 	//-------------------SERVER----------------------------
 

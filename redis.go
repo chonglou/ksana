@@ -1,8 +1,6 @@
 package ksana
 
 import (
-	"bytes"
-	"encoding/gob"
 	"fmt"
 	"github.com/fzzy/radix/extra/pool"
 	"github.com/fzzy/radix/redis"
@@ -69,18 +67,17 @@ func (r *Redis) cmd(f func(*redis.Client) error) error {
 }
 
 func (r *Redis) Set(key string, val interface{}, expire int64) error {
-	var buf bytes.Buffer
-	enc := gob.NewEncoder(&buf)
-	err := enc.Encode(val)
+
+	buf, err := Obj2bit(val)
 	if err != nil {
 		return err
 	}
 
 	return r.cmd(func(c *redis.Client) error {
 		if expire > 0 {
-			return c.Cmd("SET", key, buf.Bytes(), "EX", expire).Err
+			return c.Cmd("SET", key, buf, "EX", expire).Err
 		}
-		return c.Cmd("SET", key, buf.Bytes()).Err
+		return c.Cmd("SET", key, buf).Err
 
 	})
 
@@ -93,22 +90,14 @@ func (r *Redis) Del(key string) error {
 }
 
 func (r *Redis) Get(key string, val interface{}) error {
-	var buf bytes.Buffer
-	enc := gob.NewDecoder(&buf)
-	err := r.cmd(func(c *redis.Client) error {
+	return r.cmd(func(c *redis.Client) error {
 		s, e := c.Cmd("get", key).Bytes()
 		if e != nil {
 			return e
 		}
-		buf.Write(s)
-		return nil
+		return Bit2obj(s, val)
 	})
 
-	if err != nil {
-		return err
-	}
-
-	return enc.Decode(val)
 }
 
 func (r *Redis) Expire(key string, time int64) error {

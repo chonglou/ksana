@@ -15,7 +15,8 @@ func main() {
 	}
 
 	engines := make(map[string]ksana.Engine, 0)
-	engines["/auth"] = &kuth.AuthEngine{}
+	engines["users"] = &kuth.AuthEngine{}
+
 	for k, v := range engines {
 		app.Mount(k, v)
 	}

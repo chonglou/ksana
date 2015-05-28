@@ -71,9 +71,18 @@ func New() (Application, error) {
 			return nil, err
 		}
 
+		aes := Aes{}
+		err = aes.Init(config.Secret[101:133])
+		if err != nil {
+			return nil, err
+		}
+
+		hmac := Hmac{key: config.Secret[201:233]}
+
 		config.file = *cfg
 		if a == *act {
-			for _, b := range []interface{}{db, sq, &redis} {
+
+			for _, b := range []interface{}{db, sq, &redis, &hmac, &aes} {
 				Map(b)
 			}
 
@@ -218,7 +227,7 @@ server {
 	server_name %s;
 
 	root %s/public;
-	try_files $uri/index.html $uri @ksana.conf;
+	try_files $uri $uri/index.html @ksana.conf;
 
 	location @ksana.conf {
 		proxy_set_header X-Forwarded-Proto https;
@@ -232,7 +241,8 @@ server {
 		error_log log/ksana.error.log;
 	}
 
-	location ^~ /assets/ {
+	#location ^~ /assets/ {
+	location ~* \.(?:css|js|html|jpg|jpeg|gif|png|ico)$ {
 		gzip_static on;
 		expires max;
 		add_header Cache-Control public;
@@ -295,5 +305,15 @@ func (app *application) server() error {
 	log.Printf("=> Run `cat %s` for more startup options", app.config.file)
 	log.Println("=> Ctrl-C to shutdown server")
 
-	return http.ListenAndServe(fmt.Sprintf(":%d", app.config.Web.Port), app.router)
+	lst := fmt.Sprintf(":%d", app.config.Web.Port)
+	if IsProduction() {
+		return http.ListenAndServe(lst, app.router)
+	} else {
+		http.Handle(
+			"/public/",
+			http.StripPrefix("/public/", http.FileServer(http.Dir("public"))))
+		http.Handle("/", app.router)
+		return http.ListenAndServe(lst, nil)
+	}
+
 }

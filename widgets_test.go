@@ -14,7 +14,7 @@ func TestWidgets(t *testing.T) {
 		Fields: []Field{
 			Field{Id: "id1", Label: "L 1", Value: 0},
 			Field{Id: "id2", Label: "L 1", Value: "aaa"},
-			Field{Id: "id1", Flag: "hidden", Value: 0},
+			Field{Id: "id1", Type: "hidden", Value: 0},
 		},
 	}
 

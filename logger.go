@@ -5,9 +5,13 @@ import (
 	"os"
 )
 
+func IsProduction() bool {
+	return os.Getenv("KSANA_ENV") == "production"
+}
+
 func OpenLogger(tag string) (*syslog.Writer, error) {
 	var level syslog.Priority
-	if os.Getenv("KSANA_ENV") == "production" {
+	if IsProduction() {
 		level = syslog.LOG_INFO
 	} else {
 		level = syslog.LOG_DEBUG
